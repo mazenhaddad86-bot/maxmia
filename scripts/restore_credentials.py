@@ -33,10 +33,7 @@ with open("youtube/token.pickle", "wb") as f:
 
 # Client Secrets
 raw_cs = os.environ["YOUTUBE_CLIENT_SECRETS"]
-try:
-    cs = json.loads(base64.b64decode(raw_cs + "=="))
-except Exception:
-    cs = json.loads(raw_cs)
+cs = decode_secret(raw_cs)
 with open("youtube/client_secrets.json", "w") as f:
     json.dump(cs, f)
 
