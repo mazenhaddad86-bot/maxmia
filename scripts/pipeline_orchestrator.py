@@ -349,8 +349,35 @@ def run_pipeline():
             clip["status"] = f"vid_error: {e}"
             save_jobs(song_dir, clips)
 
-    # 5. Video zusammenbauen
-    log.info("\n🔧 Phase 3: Video zusammenbauen...")
+    # 5. Musik generieren via Suno
+    log.info("\n🎵 Phase 3: Musik generieren via Suno...")
+    music_file = song_dir / f"{theme['id']}_music.mp3"
+    try:
+        from suno_cloud import generate_music
+        generate_music(
+            title=theme["title"],
+            lyrics=theme.get("lyrics", ""),
+            style=theme.get("music_style", "children's nursery rhyme, upbeat, fun"),
+            output_path=music_file,
+        )
+        log.info(f"✅ Musik fertig: {music_file}")
+    except Exception as e:
+        log.warning(f"⚠️ Suno fehlgeschlagen ({e}) — nutze vorhandene Musik aus /music")
+        # Fallback: vorhandene MP3 aus music/ Ordner
+        candidates = sorted(MUSIC_DIR.glob("*.mp3"))
+        if candidates:
+            music_file = candidates[0]
+            log.info(f"   Fallback: {music_file.name}")
+        else:
+            music_file = None
+
+    # Musik-Pfad in clips übergeben für Assembly
+    if music_file and music_file.exists():
+        for clip in clips:
+            clip["music_file"] = str(music_file)
+
+    # 6. Video zusammenbauen
+    log.info("\n🔧 Phase 4: Video zusammenbauen...")
     try:
         final_video = assemble_video(song_dir, clips, theme, hashtags)
     except Exception as e:

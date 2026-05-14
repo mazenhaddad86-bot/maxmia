@@ -82,6 +82,8 @@ jobs:
       - name: Run pipeline
         env:
           HIGGSFIELD_COOKIES: ${{ secrets.HIGGSFIELD_COOKIES }}
+          SUNO_EMAIL: ${{ secrets.SUNO_EMAIL }}
+          SUNO_PASSWORD: ${{ secrets.SUNO_PASSWORD }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DISPLAY: ':99'
         run: |
