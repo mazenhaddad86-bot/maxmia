@@ -499,14 +499,13 @@ async def _generate_video_async(
         except Exception:
             pass
 
-        # ── Unlimited Toggle prüfen (Video-Seite hat keinen Toggle → Warning OK) ─
-        # Die /ai/video Seite zeigt keinen Toggle-Switch — er existiert nur auf /image.
-        # Toggle wurde bereits für alle 36 Bilder bestätigt → Account ist global Unlimited.
-        # Wenn Toggle nicht gefunden: Warning aber weitermachen (nicht Hard Stop).
-        ok = await _ensure_unlimited(page, hard_stop_if_not_found=False)
+        # ── Unlimited Toggle MUSS ON sein — HARD STOP wenn nicht! ──────────────
+        # Toggle existiert AUF /ai/video Seite (aria-checked="false" = OFF → 4 Credits!)
+        # [role="switch"] ist der korrekte Selektor — aria-checked="true" = ON = 0 Credits
+        ok = await _ensure_unlimited(page, hard_stop_if_not_found=True)
         if not ok:
             await browser.close()
-            raise RuntimeError("Unlimited Toggle AUS — würde Credits kosten! Abbruch.")
+            raise RuntimeError("Unlimited Toggle AUS — würde 4 Credits kosten! Abbruch.")
 
         # Alle selects/dropdowns loggen (für Debugging)
         try:
@@ -583,47 +582,34 @@ async def _generate_video_async(
             log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell (Seedance 2.0) wird verwendet")
 
         # ── ZUERST Bild hochladen (Generate-Button erst danach klickbar!) ──────
-        # Reihenfolge wichtig: Upload → Prompt → Modell/Res → Generate
+        # nth(0) = Start-Frame (Referenz), nth(1) = End-Frame (optional)
         upload_done = False
         try:
-            upload_input = page.locator("input[type='file']").first
+            upload_input = page.locator("input[type='file']").nth(0)
             if await upload_input.count() > 0 and image_path and image_path.exists():
                 await upload_input.set_input_files(str(image_path))
                 await page.wait_for_timeout(3000)
                 log.info(f"📎 Bild hochgeladen: {image_path.name}")
                 upload_done = True
             else:
-                log.warning(f"⚠️ Kein file-input gefunden (count={await upload_input.count()})")
+                log.warning(f"⚠️ Kein file-input gefunden oder Datei fehlt: {image_path}")
         except Exception as e:
             log.warning(f"Bild-Upload fehlgeschlagen: {e}")
 
-        # ── Auflösung: <select> Element mit select_option() ──────────────────
-        # Aus Logs: Dropdowns/Selects enthält '480p720p1080p' → ist ein <select>
+        # ── Auflösung: select nth(1) = Resolution (nth(0) = Duration) ────────
+        # DOM bestätigt: 2 <select>-Elemente — [0]=Duration("5"/"10"), [1]=Resolution("720p"/"1080p")
         res_selected = False
         try:
-            res_select = page.locator("select").filter(has_text="1080p").first
+            res_select = page.locator("select").nth(1)
             if await res_select.count() > 0:
                 await res_select.select_option("1080p")
                 await page.wait_for_timeout(500)
-                log.info("✅ Auflösung 1080p via select_option() gesetzt")
+                log.info("✅ Auflösung 1080p via select nth(1) gesetzt")
                 res_selected = True
         except Exception as e:
             log.warning(f"select_option 1080p fehlgeschlagen: {e}")
         if not res_selected:
-            # Fallback: Button-Klick
-            for res_sel in ["button:has-text('1080p')", "button:has-text('720p')"]:
-                try:
-                    el = page.locator(res_sel).first
-                    if await el.count() > 0:
-                        await el.click(timeout=3000)
-                        await page.wait_for_timeout(500)
-                        log.info(f"✅ Auflösung via Button '{res_sel}' gesetzt")
-                        res_selected = True
-                        break
-                except Exception:
-                    pass
-        if not res_selected:
-            log.warning("⚠️ Auflösung nicht gesetzt — 1080p ist Standard auf /ai/video")
+            log.warning("⚠️ Auflösung nicht gesetzt — Standard bleibt 720p")
 
         # ── Prompt eingeben ───────────────────────────────────────────────────
         try:
@@ -637,40 +623,23 @@ async def _generate_video_async(
         except Exception as e:
             log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
 
-        # ── Generate Button — nach Upload + Prompt klicken ───────────────────
-        # Aus Logs: Button heißt 'Generate9672' → has-text('Generate') matched
-        # Button ist nur klickbar NACHDEM Bild hochgeladen wurde
-        VIDEO_BTN_SELECTORS = [
-            "button:has-text('Generate')",   # matched 'Generate9672' ✅
-            "button:has-text('Animate')",
-            "button:has-text('Create')",
-            "button:has-text('Run')",
-            "button:has-text('Submit')",
-            "button[type='submit']",
-        ]
+        # ── Generate Button ───────────────────────────────────────────────────
+        # DOM bestätigt: button[type="submit"] ist der Generate-Button.
+        # Text = "GenerateUnlimited" wenn Toggle ON, "Generate4" wenn OFF.
         clicked = False
-        for sel in VIDEO_BTN_SELECTORS:
-            try:
-                btn = page.locator(sel).first
-                if await btn.count() > 0:
-                    await btn.click(timeout=8000)
-                    log.info(f"🎬 Generiere Video mit '{sel}': {prompt[:50]}...")
-                    clicked = True
-                    break
-            except Exception:
-                pass
+        try:
+            btn = page.locator("button[type='submit']").first
+            if await btn.count() > 0:
+                await btn.click(timeout=10000)
+                log.info(f"🎬 Generate geklickt (submit): {prompt[:50]}...")
+                clicked = True
+        except Exception as e:
+            log.warning(f"submit-Button Klick fehlgeschlagen: {e}")
 
         if not clicked:
-            # Letzter Versuch: erster enabled submit-ähnlicher Button
-            try:
-                all_btns = page.locator("button:not([disabled])").last
-                await all_btns.click(timeout=5000)
-                log.info(f"🎬 Generiere Video (letzter Button): {prompt[:50]}...")
-                clicked = True
-            except Exception as e:
-                log.error(f"❌ Kein Generate-Button gefunden: {e}")
-                await browser.close()
-                raise RuntimeError(f"Generate-Button nicht gefunden. Buttons waren: {btn_texts}")
+            log.error(f"❌ Generate-Button nicht gefunden!")
+            await browser.close()
+            raise RuntimeError(f"Generate-Button nicht gefunden. Buttons: {btn_texts}")
 
         # ── WICHTIG: Vorhandene Videos snapshotten VOR Generate-Klick ──────────
         # product-to-video.mp4 Demo + alle bereits geladenen Videos IGNORIEREN!
