@@ -1,37 +1,33 @@
-name: Max & Mia World — Daily Video Pipeline
+name: Max & Mia World - Daily Video Pipeline
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # Täglich 02:00 UTC (03:00 Berlin)
-  workflow_dispatch:        # Manuell auslösbar via GitHub UI
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
   generate-video:
-    name: Generate & Upload Kids Video
+    name: Generate and Upload Kids Video
     runs-on: ubuntu-latest
-    timeout-minutes: 360    # Max 6 Stunden
+    timeout-minutes: 360
 
     steps:
-      # ── Code holen ─────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Python Setup ───────────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
-      # ── System Dependencies ────────────────────────────────────────────────
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg xvfb x11-utils
 
-      # ── Python Dependencies ────────────────────────────────────────────────
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
@@ -41,58 +37,18 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install chromium --with-deps
 
-      # ── Credentials Setup ──────────────────────────────────────────────────
       - name: Restore YouTube credentials
         env:
           YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
           YOUTUBE_CLIENT_SECRETS: ${{ secrets.YOUTUBE_CLIENT_SECRETS }}
-        run: |
-          mkdir -p youtube
-          python - <<'EOF'
-import json, pickle, base64, os
-from google.oauth2.credentials import Credentials
+        run: python scripts/restore_credentials.py
 
-# Token dekodieren und als pickle speichern
-raw = os.environ["YOUTUBE_TOKEN_JSON"]
-try:
-    data = json.loads(base64.b64decode(raw + "=="))
-except Exception:
-    data = json.loads(raw)
-
-creds = Credentials(
-    token=data["token"],
-    refresh_token=data["refresh_token"],
-    token_uri=data["token_uri"],
-    client_id=data["client_id"],
-    client_secret=data["client_secret"],
-    scopes=data["scopes"],
-)
-with open("youtube/token.pickle", "wb") as f:
-    pickle.dump(creds, f)
-
-# Client secrets schreiben
-raw_cs = os.environ["YOUTUBE_CLIENT_SECRETS"]
-try:
-    cs = json.loads(base64.b64decode(raw_cs + "=="))
-except Exception:
-    cs = json.loads(raw_cs)
-with open("youtube/client_secrets.json", "w") as f:
-    json.dump(cs, f)
-
-print("YouTube credentials restored")
-          EOF
-
-      # ── State wiederherstellen (für Round-Robin) ───────────────────────────
       - name: Restore pipeline state
         run: |
-          if [ -f "state.json" ]; then
-            echo "✅ state.json found"
-          else
+          if [ ! -f "state.json" ]; then
             echo '{"last_theme_index": -1}' > state.json
-            echo "📝 state.json created fresh"
           fi
 
-      # ── Pipeline ausführen ─────────────────────────────────────────────────
       - name: Run pipeline
         env:
           HIGGSFIELD_COOKIES: ${{ secrets.HIGGSFIELD_COOKIES }}
@@ -101,25 +57,19 @@ print("YouTube credentials restored")
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DISPLAY: ':99'
         run: |
-          # Xvfb starten (virtuelles Display für Browser)
           Xvfb :99 -screen 0 1920x1080x24 &
           sleep 2
-          echo "✅ Xvfb started"
-
-          # Pipeline starten
           python scripts/pipeline_orchestrator.py
 
-      # ── State für nächsten Run speichern ───────────────────────────────────
       - name: Commit updated state
         run: |
           git config --global user.email "pipeline@maxmiaworld.com"
-          git config --global user.name "Max & Mia Pipeline"
+          git config --global user.name "Max Mia Pipeline"
           git add state.json
           git diff --staged --quiet || git commit -m "chore: update pipeline state [skip ci]"
           git push || true
 
-      # ── Output als Artifact speichern ──────────────────────────────────────
-      - name: Upload output artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -128,14 +78,3 @@ print("YouTube credentials restored")
             output/*/jobs.json
             output/*/*.mp4
           retention-days: 7
-
-      # ── Pipeline Log ───────────────────────────────────────────────────────
-      - name: Summary
-        if: always()
-        run: |
-          echo "## Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Run: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          if [ -f state.json ]; then
-            echo "State: $(cat state.json)" >> $GITHUB_STEP_SUMMARY
-          fi
-          find output -name "jobs.json" -exec echo "Jobs: {}" \; >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
