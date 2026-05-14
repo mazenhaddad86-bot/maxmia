@@ -333,30 +333,65 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         await box.fill(full_prompt)
         await page.wait_for_timeout(600)
 
+        # ── WICHTIG: Vorhandene Bilder snapshotten VOR Generate-Klick ────────
+        # Ohne das: Code nimmt Japan-Bilder o.ä. die schon auf der Seite sind!
+        IMG_LOCATOR = (
+            "img[src*='cloudfront'], img[src*='cdn.higgsfield'], "
+            "img[src*='storage'], img[src*='higgs.ai'], img[src*='images.higgs']"
+        )
+        existing_urls: set[str] = set()
+        try:
+            pre_imgs = page.locator(IMG_LOCATOR)
+            pre_count = await pre_imgs.count()
+            for i in range(pre_count):
+                src = await pre_imgs.nth(i).get_attribute("src")
+                if src:
+                    existing_urls.add(src)
+            log.info(f"📸 {len(existing_urls)} vorhandene Bilder auf Seite (werden ignoriert)")
+        except Exception as e:
+            log.warning(f"Snapshot vorhandener Bilder fehlgeschlagen: {e}")
+
         # Generate klicken
         btn = page.locator("button:has-text('Generate')").first
         await btn.click()
-        log.info(f"🎨 Generiere Bild: {prompt[:60]}...")
+        log.info(f"🎨 Generate geklickt — warte auf NEUES Bild: {prompt[:60]}...")
 
-        # Auf Ergebnis warten (max 5 Min)
+        # Mindestens 5s warten damit Generation starten kann
+        await page.wait_for_timeout(5000)
+
+        # Auf NEUES Bild warten (max 5 Min) — nur URLs die NICHT vorher da waren!
         img_url = None
         deadline = time.time() + 300
+        check_n = 0
         while time.time() < deadline:
             await page.wait_for_timeout(4000)
-            candidates = page.locator(
-                "img[src*='cloudfront'], img[src*='cdn.higgsfield'], img[src*='storage'], img[src*='higgs.ai']"
-            )
+            check_n += 1
+            candidates = page.locator(IMG_LOCATOR)
             n = await candidates.count()
-            if n > 0:
-                url = await candidates.last.get_attribute("src")
-                if url and url.startswith("http") and "loading" not in url:
-                    img_url = url
-                    log.info(f"✅ Bild bereit: {url[:80]}")
-                    break
+            new_found = []
+            for i in range(n):
+                url = await candidates.nth(i).get_attribute("src")
+                if url and url.startswith("http") and "loading" not in url and url not in existing_urls:
+                    new_found.append(url)
+            if new_found:
+                img_url = new_found[-1]  # neuestes neues Bild
+                log.info(f"✅ NEUES Bild bereit (Check {check_n}): {img_url[:80]}")
+                break
+            elapsed = int(time.time() - (deadline - 300))
+            log.info(f"⏳ Check {check_n}: {n} Bilder gesamt, 0 neue — {elapsed}s / 300s")
+            if check_n % 5 == 0:  # Screenshot alle 20s
+                try:
+                    await page.screenshot(path=f"/tmp/hf_img_wait_{check_n}.png")
+                except Exception:
+                    pass
 
         if not img_url:
+            try:
+                await page.screenshot(path="/tmp/hf_img_timeout.png")
+            except Exception:
+                pass
             await browser.close()
-            raise TimeoutError("Kein Bild nach 5 Minuten")
+            raise TimeoutError(f"Kein neues Bild nach 5 Minuten (vorhandene: {len(existing_urls)})")
 
         # Mit Session-Cookies herunterladen — kein 403!
         await _download_with_ctx(ctx, img_url, save_path)
@@ -637,9 +672,8 @@ async def _generate_video_async(
                 await browser.close()
                 raise RuntimeError(f"Generate-Button nicht gefunden. Buttons waren: {btn_texts}")
 
-        # Warten auf ECHTES generiertes Video (max 8 Min)
-        # WICHTIG: "product-to-video.mp4" ist ein Demo-Placeholder — NICHT akzeptieren!
-        # Nur URLs akzeptieren die nach dem Generate-Klick erscheinen und kein Demo sind.
+        # ── WICHTIG: Vorhandene Videos snapshotten VOR Generate-Klick ──────────
+        # product-to-video.mp4 Demo + alle bereits geladenen Videos IGNORIEREN!
         PLACEHOLDER_URLS = [
             "product-to-video.mp4",
             "demo",
@@ -647,31 +681,61 @@ async def _generate_video_async(
             "sample",
             "example",
         ]
+        existing_vid_urls: set[str] = set()
+        try:
+            pre_vids = page.locator("video source[src], video[src]")
+            pre_count = await pre_vids.count()
+            for i in range(pre_count):
+                src = await pre_vids.nth(i).get_attribute("src")
+                if src:
+                    existing_vid_urls.add(src)
+            log.info(f"🎬 {len(existing_vid_urls)} vorhandene Videos auf Seite (werden ignoriert)")
+        except Exception as e:
+            log.warning(f"Snapshot vorhandener Videos fehlgeschlagen: {e}")
+
+        # Warten auf ECHTES generiertes Video (max 8 Min)
+        # Nur URLs akzeptieren die NACH dem Klick NEU erscheinen und kein Demo/Placeholder sind.
         vid_url = None
         deadline = time.time() + 480
-        log.info("⏳ Warte auf generiertes Video (Demo-Placeholder wird ignoriert)...")
+        check_n = 0
+        log.info("⏳ Warte auf NEUES generiertes Video (Demo + vorhandene Videos werden ignoriert)...")
         while time.time() < deadline:
             await page.wait_for_timeout(5000)
+            check_n += 1
             candidates = page.locator("video source[src], video[src]")
             n = await candidates.count()
-            if n > 0:
-                for i in range(n - 1, -1, -1):  # Von hinten (neuestes zuerst)
-                    url = await candidates.nth(i).get_attribute("src")
-                    if not url or not url.startswith("http"):
-                        continue
-                    # Demo-Placeholder ablehnen
-                    if any(p in url for p in PLACEHOLDER_URLS):
-                        log.debug(f"   ⏭️ Demo-Video ignoriert: {url[:60]}")
-                        continue
-                    vid_url = url
-                    log.info(f"✅ Echtes Video bereit: {url[:80]}")
-                    break
-                if vid_url:
-                    break
+            for i in range(n - 1, -1, -1):  # Von hinten (neuestes zuerst)
+                url = await candidates.nth(i).get_attribute("src")
+                if not url or not url.startswith("http"):
+                    continue
+                # Demo-Placeholder ablehnen
+                if any(p in url for p in PLACEHOLDER_URLS):
+                    log.debug(f"   ⏭️ Demo-Video ignoriert: {url[:60]}")
+                    continue
+                # Bereits vorhandene Videos ablehnen
+                if url in existing_vid_urls:
+                    log.debug(f"   ⏭️ Vorhandenes Video ignoriert: {url[:60]}")
+                    continue
+                vid_url = url
+                log.info(f"✅ Echtes NEUES Video bereit (Check {check_n}): {url[:80]}")
+                break
+            if vid_url:
+                break
+            elapsed = int(time.time() - (deadline - 480))
+            log.info(f"⏳ Check {check_n}: {n} Videos gesamt — {elapsed}s / 480s")
+            if check_n % 6 == 0:  # Screenshot alle 30s
+                try:
+                    await page.screenshot(path=f"/tmp/hf_vid_wait_{check_n}.png")
+                except Exception:
+                    pass
 
         if not vid_url:
+            try:
+                await page.screenshot(path="/tmp/hf_vid_timeout.png")
+            except Exception:
+                pass
             await browser.close()
-            raise TimeoutError("Kein Video nach 8 Minuten")
+            raise TimeoutError(f"Kein neues Video nach 8 Minuten (vorhandene: {len(existing_vid_urls)})")
 
         # Mit Session-Cookies herunterladen
         if save_path:
