@@ -286,19 +286,63 @@ async def _generate_video_async(
             await browser.close()
             raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
 
-        ok = await _ensure_unlimited(page)
-        if not ok:
-            await browser.close()
-            raise RuntimeError("Unlimited Toggle AUS — Abbruch!")
+        # ── SPA braucht Zeit zum Laden ────────────────────────────────────────
+        # Nach domcontentloaded sind nur Navbar-Buttons sichtbar (Image/Video/Audio/Search).
+        # Wir müssen auf "Video" klicken und warten bis die Generation-UI erscheint.
+        log.info("⏳ Warte 5s auf SPA-Initialisierung...")
+        await page.wait_for_timeout(5000)
 
-        # Screenshot für Debugging speichern
+        # Screenshot direkt nach Laden — für Debugging
         try:
-            await page.screenshot(path="/tmp/hf_video_page.png", full_page=False)
-            log.info(f"📸 Screenshot: /tmp/hf_video_page.png — URL: {page.url}")
+            await page.screenshot(path="/tmp/hf_video_pre_click.png")
+            log.info(f"📸 Pre-Click Screenshot gespeichert — URL: {page.url}")
         except Exception:
             pass
 
-        # Alle sichtbaren Buttons loggen (für Debugging)
+        # "Video"-Tab in Navbar klicken um Generation-UI zu aktivieren
+        try:
+            video_tab = page.locator("button:has-text('Video'), a:has-text('Video'), [role='tab']:has-text('Video')").first
+            if await video_tab.count() > 0:
+                await video_tab.click()
+                log.info("🖱️ 'Video'-Tab geklickt — warte auf Generation-UI...")
+                await page.wait_for_timeout(3000)
+        except Exception as e:
+            log.warning(f"Video-Tab-Klick fehlgeschlagen: {e}")
+
+        # Warten bis Generation-UI erscheint (textarea ODER file-input)
+        # Max 20 Sekunden — ohne diese Elemente hat die Seite nicht geladen
+        ui_loaded = False
+        for wait_attempt in range(4):
+            try:
+                # Versuche auf textarea oder file-input zu warten
+                await page.wait_for_selector(
+                    "textarea, input[type='file'], [contenteditable='true']",
+                    timeout=5000
+                )
+                ui_loaded = True
+                log.info(f"✅ Video-Generation-UI geladen (Versuch {wait_attempt+1})")
+                break
+            except Exception:
+                log.warning(f"⏳ Generation-UI noch nicht da (Versuch {wait_attempt+1}/4) — warte 3s...")
+                await page.wait_for_timeout(3000)
+                # Nochmal Video-Tab klicken falls nötig
+                if wait_attempt == 1:
+                    try:
+                        video_tab = page.locator("button:has-text('Video')").first
+                        if await video_tab.count() > 0:
+                            await video_tab.click()
+                    except Exception:
+                        pass
+
+        if not ui_loaded:
+            # Screenshot bei Fehler
+            try:
+                await page.screenshot(path="/tmp/hf_video_ui_failed.png")
+            except Exception:
+                pass
+            log.error("❌ Video-Generation-UI nie geladen — Seite hat sich verändert!")
+
+        # Debug: Alle sichtbaren Buttons loggen
         btn_texts = []
         try:
             buttons = page.locator("button:visible")
@@ -307,9 +351,22 @@ async def _generate_video_async(
                 t = await buttons.nth(i).text_content()
                 if t:
                     btn_texts.append(t.strip()[:40])
-            log.info(f"🔍 Sichtbare Buttons ({n_btns}): {btn_texts}")
+            log.info(f"🔍 Sichtbare Buttons nach UI-Load ({n_btns}): {btn_texts}")
         except Exception as e:
             log.warning(f"Button-Debug fehlgeschlagen: {e}")
+
+        # Screenshot nach UI-Load
+        try:
+            await page.screenshot(path="/tmp/hf_video_page.png", full_page=False)
+            log.info(f"📸 Post-Load Screenshot: /tmp/hf_video_page.png")
+        except Exception:
+            pass
+
+        # ── Unlimited Toggle MUSS ON sein (nach UI-Load prüfen) ─────────────
+        ok = await _ensure_unlimited(page)
+        if not ok:
+            await browser.close()
+            raise RuntimeError("Unlimited Toggle AUS — würde Credits kosten! Abbruch.")
 
         # Alle selects/dropdowns loggen (für Debugging)
         try:
