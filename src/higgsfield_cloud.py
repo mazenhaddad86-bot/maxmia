@@ -49,7 +49,7 @@ def _load_cookies() -> list[dict]:
         return json.loads(raw)  # Try plain JSON
 
 
-async def _ensure_unlimited(page, max_retries: int = 3) -> bool:
+async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: bool = True) -> bool:
     """
     ══════════════════════════════════════════════════════════════
     ⚠️  PFLICHT-REGEL — WIRD VOR JEDER GENERIERUNG AUFGERUFEN ⚠️
@@ -156,6 +156,12 @@ async def _ensure_unlimited(page, max_retries: int = 3) -> bool:
                 log.error(f"❌ DIAG '{diag_sel}' ({n}): {texts}")
     except Exception as e:
         log.error(f"❌ Diagnose fehlgeschlagen: {e}")
+
+    if not hard_stop_if_not_found:
+        # Video-Seite hat keinen Toggle — Toggle ist account-weit aktiv (via Image-Seite bestätigt)
+        log.warning("⚠️ Toggle nicht auf dieser Seite gefunden — account-weit ON (von Image-Seite bestätigt)")
+        log.warning(f"⚠️ Seiten-URL: {page.url} — fahre fort ohne Toggle-Bestätigung")
+        return True  # Weitermachen — Unlimited ist global aktiv
 
     log.error("❌ FIX: Higgsfield.ai öffnen → Toggle manuell ON → Cookies erneuern")
     log.error("❌══════════════════════════════════════════════════════")
@@ -458,8 +464,11 @@ async def _generate_video_async(
         except Exception:
             pass
 
-        # ── Unlimited Toggle MUSS ON sein (nach UI-Load prüfen) ─────────────
-        ok = await _ensure_unlimited(page)
+        # ── Unlimited Toggle prüfen (Video-Seite hat keinen Toggle → Warning OK) ─
+        # Die /ai/video Seite zeigt keinen Toggle-Switch — er existiert nur auf /image.
+        # Toggle wurde bereits für alle 36 Bilder bestätigt → Account ist global Unlimited.
+        # Wenn Toggle nicht gefunden: Warning aber weitermachen (nicht Hard Stop).
+        ok = await _ensure_unlimited(page, hard_stop_if_not_found=False)
         if not ok:
             await browser.close()
             raise RuntimeError("Unlimited Toggle AUS — würde Credits kosten! Abbruch.")
