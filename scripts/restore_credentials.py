@@ -5,12 +5,20 @@ from pathlib import Path
 
 Path("youtube").mkdir(exist_ok=True)
 
+def decode_secret(raw: str) -> dict:
+    """Dekodiert Secret — entfernt BOM und versucht base64 oder plain JSON."""
+    # BOM und Whitespace entfernen
+    raw = raw.strip().lstrip('﻿').lstrip('\xef\xbb\xbf').strip()
+    # Nur ASCII behalten
+    raw = raw.encode('ascii', errors='ignore').decode('ascii').strip()
+    try:
+        return json.loads(base64.b64decode(raw + "=="))
+    except Exception:
+        return json.loads(raw)
+
 # YouTube Token
 raw = os.environ["YOUTUBE_TOKEN_JSON"]
-try:
-    data = json.loads(base64.b64decode(raw + "=="))
-except Exception:
-    data = json.loads(raw)
+data = decode_secret(raw)
 
 creds = Credentials(
     token=data["token"],
