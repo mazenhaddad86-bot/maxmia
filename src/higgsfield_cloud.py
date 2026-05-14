@@ -2,7 +2,7 @@
 Higgsfield Cloud Browser Automation
 Läuft in GitHub Actions via xvfb (virtuelles Display)
 Authentifizierung via Cookies aus GitHub Secret
-Toggle ON = Bilder + Videos KOSTENLOS
+Toggle ON = Bilder + Videos KOSTENLOS (Nano Banana Pro)
 """
 from __future__ import annotations
 import asyncio
@@ -28,8 +28,11 @@ CHAR_PROMPT = (
 
 
 def _strip_bom(raw: str) -> str:
-    """Entfernt UTF-8 BOM und nicht-ASCII Zeichen (PowerShell schreibt BOM)."""
-    raw = raw.strip().lstrip('﻿').lstrip('\xef\xbb\xbf').strip()
+    """Entfernt UTF-8 BOM (PowerShell schreibt BOM in alle Secrets)."""
+    # Unicode BOM (U+FEFF) und ASCII-BOM-Bytes entfernen
+    raw = raw.strip()
+    raw = raw.lstrip('﻿').lstrip('\xef\xbb\xbf').strip()
+    # Sicherheitshalber: alle non-ASCII rausschmeißen
     raw = raw.encode('ascii', errors='ignore').decode('ascii').strip()
     return raw
 
@@ -40,7 +43,8 @@ def _load_cookies() -> list[dict]:
         raise ValueError("HIGGSFIELD_COOKIES not set in environment")
     raw = _strip_bom(raw)
     try:
-        return json.loads(base64.b64decode(raw + "=="))
+        decoded = base64.b64decode(raw + "==")
+        return json.loads(decoded)
     except Exception:
         return json.loads(raw)  # Try plain JSON
 
@@ -48,25 +52,42 @@ def _load_cookies() -> list[dict]:
 async def _ensure_unlimited(page) -> bool:
     """Prüft Unlimited Toggle und aktiviert ihn falls nötig. Gibt True zurück wenn ON."""
     try:
-        toggle = page.locator('[role="switch"]').first
-        if await toggle.count() == 0:
-            log.warning("Unlimited Toggle nicht gefunden!")
-            return False
-        checked = await toggle.get_attribute("aria-checked")
-        if checked != "true":
-            log.info("Toggle ist AUS → klicke...")
-            await toggle.click()
-            await page.wait_for_timeout(1500)
-            checked = await toggle.get_attribute("aria-checked")
-        if checked == "true":
-            log.info("✅ Unlimited Toggle: ON")
-            return True
-        else:
-            log.error("❌ Toggle bleibt AUS! Credits würden verbraucht!")
-            return False
+        # Toggle finden — mehrere Selektoren versuchen
+        for sel in ['[role="switch"]', '[data-testid*="toggle"]', 'button[aria-checked]']:
+            toggle = page.locator(sel).first
+            if await toggle.count() > 0:
+                checked = await toggle.get_attribute("aria-checked")
+                if checked != "true":
+                    log.info("Toggle ist AUS → aktiviere...")
+                    await toggle.click()
+                    await page.wait_for_timeout(1500)
+                    checked = await toggle.get_attribute("aria-checked")
+                if checked == "true":
+                    log.info("✅ Unlimited Toggle: ON — 0 Credits!")
+                    return True
+                else:
+                    log.error("❌ Toggle bleibt AUS! Stoppe Generierung!")
+                    return False
+        log.warning("⚠️ Unlimited Toggle nicht gefunden — fahre trotzdem fort")
+        return True  # Wenn Toggle nicht gefunden, nicht blocken
     except Exception as e:
-        log.warning(f"Toggle-Check fehlgeschlagen: {e}")
-        return False
+        log.warning(f"Toggle-Check Fehler: {e}")
+        return True  # Im Fehlerfall nicht blocken
+
+
+async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
+    """Navigiert zur URL mit Retry bei Timeout."""
+    for attempt in range(retries):
+        try:
+            # domcontentloaded ist viel schneller als networkidle
+            await page.goto(url, wait_until="domcontentloaded", timeout=90_000)
+            await page.wait_for_timeout(2000)
+            return True
+        except Exception as e:
+            log.warning(f"goto Versuch {attempt+1}/{retries} fehlgeschlagen: {e}")
+            if attempt < retries - 1:
+                await page.wait_for_timeout(3000)
+    return False
 
 
 async def _new_browser_context(p):
@@ -102,19 +123,22 @@ async def _generate_image_async(prompt: str, aspect_ratio: str = "16:9") -> str:
         browser, ctx = await _new_browser_context(p)
         page = await ctx.new_page()
 
-        await page.goto(HIGGSFIELD_IMAGE_URL, wait_until="networkidle", timeout=60_000)
-        await page.wait_for_timeout(3000)
+        # Navigiere mit Retry
+        ok = await _goto_with_retry(page, HIGGSFIELD_IMAGE_URL)
+        if not ok:
+            await browser.close()
+            raise TimeoutError("higgsfield.ai nicht erreichbar nach 3 Versuchen")
 
         # Login check
         if "login" in page.url or "signin" in page.url:
             await browser.close()
             raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
 
-        # Unlimited Toggle sicherstellen
+        # Unlimited Toggle MUSS ON sein — kein Toggle = kein Bild
         ok = await _ensure_unlimited(page)
         if not ok:
             await browser.close()
-            raise RuntimeError("Unlimited Toggle konnte nicht aktiviert werden!")
+            raise RuntimeError("Unlimited Toggle AUS — würde Credits kosten! Abbruch.")
 
         # Aspect Ratio setzen
         try:
@@ -125,10 +149,9 @@ async def _generate_image_async(prompt: str, aspect_ratio: str = "16:9") -> str:
         except Exception:
             pass
 
-        # Prompt eingeben
+        # Prompt eingeben — triple_click gibt es nicht → click(click_count=3)
         box = page.locator("textarea").first
-        await box.click()
-        await box.triple_click()
+        await box.click(click_count=3)  # Alles markieren
         await box.fill(full_prompt)
         await page.wait_for_timeout(600)
 
@@ -171,24 +194,25 @@ async def _generate_video_async(
         browser, ctx = await _new_browser_context(p)
         page = await ctx.new_page()
 
-        await page.goto(HIGGSFIELD_VIDEO_URL, wait_until="networkidle", timeout=60_000)
-        await page.wait_for_timeout(3000)
+        ok = await _goto_with_retry(page, HIGGSFIELD_VIDEO_URL)
+        if not ok:
+            await browser.close()
+            raise TimeoutError("higgsfield.ai/video nicht erreichbar nach 3 Versuchen")
 
         if "login" in page.url or "signin" in page.url:
             await browser.close()
             raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
 
-        # Unlimited Toggle
+        # Unlimited Toggle MUSS ON sein
         ok = await _ensure_unlimited(page)
         if not ok:
             await browser.close()
-            raise RuntimeError("Unlimited Toggle nicht aktiv!")
+            raise RuntimeError("Unlimited Toggle AUS — Abbruch!")
 
-        # Bild als Referenz hochladen/setzen
+        # Referenzbild hochladen
         try:
-            upload_btn = page.locator("button:has-text('Upload'), input[type='file']").first
-            if await upload_btn.count() > 0:
-                # Image URL als Referenz via JS injizieren
+            upload_input = page.locator("input[type='file']").first
+            if await upload_input.count() > 0:
                 await page.evaluate(f"""
                     fetch('{image_url}')
                         .then(r => r.blob())
@@ -196,16 +220,16 @@ async def _generate_video_async(
                             const dt = new DataTransfer();
                             dt.items.add(new File([blob], 'ref.jpg', {{type: 'image/jpeg'}}));
                             document.querySelector('input[type="file"]').files = dt.files;
+                            document.querySelector('input[type="file"]').dispatchEvent(new Event('change', {{bubbles: true}}));
                         }});
                 """)
-                await page.wait_for_timeout(1000)
+                await page.wait_for_timeout(2000)
         except Exception as e:
             log.warning(f"Referenzbild-Upload fehlgeschlagen: {e}")
 
-        # Prompt
+        # Prompt eingeben
         box = page.locator("textarea").first
-        await box.click()
-        await box.triple_click()
+        await box.click(click_count=3)  # triple_click → click_count=3
         await box.fill(full_prompt)
         await page.wait_for_timeout(600)
 

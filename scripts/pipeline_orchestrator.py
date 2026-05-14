@@ -88,58 +88,195 @@ def pick_next_theme() -> dict:
 
 # ── Storyboard generieren ────────────────────────────────────────────────────
 
+def _parse_lyrics_sections(lyrics: str) -> dict:
+    """Teilt Lyrics in benannte Sektionen: intro, verse, chorus, bridge, outro."""
+    result = {"intro": [], "verse": [], "chorus": [], "bridge": [], "outro": []}
+    current = "verse"
+    for line in lyrics.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        m = re.match(r"\[(\w+)\s*\d*\]", line, re.IGNORECASE)
+        if m:
+            key = m.group(1).lower()
+            if key in result:
+                current = key
+        else:
+            result[current].append(line)
+    # Fallback: alle Zeilen in verse wenn leer
+    all_lines = [l for ll in result.values() for l in ll]
+    if not result["verse"] and all_lines:
+        result["verse"] = all_lines
+    return result
+
+
 def build_storyboard(theme: dict) -> list[dict]:
     """
-    Erstellt 36 Clips mit Rotem Faden aus Liedtext.
-    Jeder Clip = eine Szene aus der Geschichte des Liedes.
-    Verschiedene Umgebungen, keine Wiederholungen.
+    36 Clips mit echtem ROTEM FADEN — 3-Akt-Struktur:
+
+    AKT 1 (Clips 01-08): Einführung — Max & Mia starten ihr Abenteuer
+    AKT 2 (Clips 09-27): Hauptabenteuer — Story folgt Liedtext Zeile für Zeile
+    AKT 3 (Clips 28-36): Triumph & Happy End — Feier, Lernerfolg, Abschluss
     """
     lyrics = theme.get("lyrics", "")
     title = theme["title"]
-    visual_style = theme.get("visual_style", "3D Pixar animation style")
+    vstyle = theme.get("visual_style", "3D Pixar animation style")
+    learn = theme.get("learn_element", "letters and numbers")
 
-    # Lyrics in Abschnitte aufteilen
-    sections = re.split(r"\[(?:Verse|Chorus|Bridge|Outro|Intro)\s*\d*\]", lyrics)
-    sections = [s.strip() for s in sections if s.strip()]
+    secs = _parse_lyrics_sections(lyrics)
+    verse_lines  = secs["verse"]  or [f"Max and Mia learn {learn}"]
+    chorus_lines = secs["chorus"] or verse_lines
+    bridge_lines = secs["bridge"] or verse_lines
+    intro_lines  = secs["intro"]  or [f"Let's start {title}!"]
+    outro_lines  = secs["outro"]  or ["Hooray, we did it!"]
 
+    # ── ACT 1: SETUP (Clips 1-8) ────────────────────────────────────────────
+    act1 = [
+        (
+            "Max and Mia wake up excited — sunshine through the window, today is adventure day!",
+            10, "Camera slowly zooms in on Max and Mia stretching and smiling, warm morning light"
+        ),
+        (
+            "Max and Mia rush to the window pointing at the bright colorful world outside",
+            0, "Quick pan following Max and Mia running to the window, excited and bouncy"
+        ),
+        (
+            f"Max puts on his blue sweater, Mia ties her pink ribbons — ready for {title}!",
+            1, "Close-up of Max and Mia getting dressed, big smiles, gentle camera pull-back"
+        ),
+        (
+            f"{intro_lines[0].rstrip('!')} — Max and Mia step outside into a bright sunny world",
+            0, "Wide shot, Max and Mia burst through the front door into sunlight, arms spread wide"
+        ),
+        (
+            f"Max and Mia discover something magical — {learn} glowing and shining everywhere!",
+            3, "Camera swirls around Max and Mia as colorful magic fills the air around them"
+        ),
+        (
+            f"Mia points with delight and Max cheers — the wonderful world of {title} awaits!",
+            1, "Max and Mia pointing and laughing, camera follows their gaze to the colorful scene"
+        ),
+        (
+            "Max and Mia hold hands and skip forward together into the adventure — best friends!",
+            0, "Tracking shot, Max and Mia skipping hand-in-hand on a bright sunlit path"
+        ),
+        (
+            f"{chorus_lines[0].rstrip('!')} — Max and Mia begin their song with big happy smiles",
+            2, "Slow zoom-out revealing Max and Mia in beautiful landscape, singing together"
+        ),
+    ]
+
+    # ── ACT 2: ADVENTURE (Clips 9-27) — Liedtext Zeile für Zeile ────────────
+    story_lines = []
+    for l in verse_lines:
+        story_lines.append(l)
+    for l in chorus_lines:
+        story_lines.append(l)
+    for l in bridge_lines:
+        story_lines.append(l)
+    while len(story_lines) < 19:
+        story_lines += story_lines
+    story_lines = story_lines[:19]
+
+    act2_envs = [3, 4, 5, 6, 7, 8, 9, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+    act2_motions = [
+        "Gentle camera pan left, Max and Mia dancing and singing, happy expressions",
+        "Camera slowly zooms in, Max pointing at something magical, Mia clapping",
+        "Wide shot with slow push forward, Max and Mia exploring together",
+        "Camera follows Max and Mia running and laughing, smooth tracking shot",
+        "Close-up on faces, Max and Mia both smiling and singing along",
+        "Camera rotates 360 around Max and Mia discovering something wonderful",
+        "Camera tilts down from sky to reveal Max and Mia cheering below",
+        "Side-scrolling pan, Max and Mia walking and pointing at things",
+        "Zoom-out revealing a magical scene, Max and Mia in the center",
+        "Gentle sway motion, Max and Mia swaying to the music together",
+        "Camera cranes upward, Max and Mia looking up with wide-eyed wonder",
+        "Max counts on his fingers while Mia watches and claps along",
+        "Soft focus pull revealing Max and Mia learning something new together",
+        "Camera spins slowly, colorful world surrounds Max and Mia",
+        "Low angle shot looking up at Max and Mia jumping with joy",
+        "Slow-motion, Max and Mia give each other a big high-five",
+        "Tracking shot backward, Max and Mia confidently moving forward",
+        "Close-up zoom-in on Mia's big eyes sparkling with wonder",
+        "Wide celebration shot, Max and Mia with animal friends joining in",
+    ]
+
+    # ── ACT 3: TRIUMPH (Clips 28-36) ────────────────────────────────────────
+    act3 = [
+        (
+            f"Max and Mia mastered {learn}! A huge glitter celebration explodes around them!",
+            7, "Camera pulls back wide, Max and Mia jump for joy, confetti rains down"
+        ),
+        (
+            f"{outro_lines[0].rstrip('!')} — Max and Mia cheer with all their animal friends!",
+            8, "Wide angle, colorful animal friends join Max and Mia in a big group celebration"
+        ),
+        (
+            f"Max holds a shining golden trophy for {title} — Mia claps with pride!",
+            1, "Close-up on Max holding trophy, Mia beside him, both beaming with pride"
+        ),
+        (
+            "A beautiful rainbow appears over Max and Mia — magical reward for finishing together!",
+            0, "Camera tilts up to rainbow appearing, slow zoom-out with Max and Mia glowing below"
+        ),
+        (
+            "Max and Mia do their victory dance — spinning, laughing, jumping with pure joy!",
+            9, "Energetic spinning camera following Max and Mia dancing in a joyful circle"
+        ),
+        (
+            "Mia hugs Max warmly — best friends forever, always learning together every day!",
+            1, "Gentle warm close-up, Mia hugging Max, soft golden sunset light, heartwarming"
+        ),
+        (
+            "Max and Mia wave goodbye to you — see you next time for more adventures!",
+            0, "Slow zoom-out, Max and Mia waving directly at the camera, huge warm smiles"
+        ),
+        (
+            "Magical sparkles fill the screen as the adventure ends — until next time!",
+            0, "Camera slowly pulls back as golden sparkles fill the frame, magical ending"
+        ),
+        (
+            "Max and Mia give a big thumbs up — YOU DID IT TOO! Great job learning today!",
+            1, "Direct camera, Max and Mia thumbs up together, huge smiles, warm happy freeze"
+        ),
+    ]
+
+    # ── Alle Clips zusammenbauen ────────────────────────────────────────────
     clips = []
-    env_idx = 0
 
-    for i in range(36):
-        section_idx = i % max(len(sections), 1)
-        section = sections[section_idx] if sections else ""
-        lines = [l.strip() for l in section.split("\n") if l.strip()]
-        line = lines[i % max(len(lines), 1)] if lines else f"Max and Mia in {title}"
-
+    for scene, env_idx, motion in act1:
         env = ENVIRONMENTS[env_idx % len(ENVIRONMENTS)]
-        env_idx += 1
-
-        prompt = (
-            f"{line.rstrip('!')} — "
-            f"{env}, {visual_style}, "
-            f"soft natural daylight, bright and cheerful, "
-            f"no dramatic light rays"
-        )
-
-        motion = (
-            f"Gentle camera pan, Max and Mia {line[:40].lower()}, "
-            f"happy expressions, smooth motion, 3D Pixar style"
-        )
-
         clips.append({
-            "idx": i + 1,
-            "scene_desc": line,
-            "environment": env,
-            "image_prompt": prompt,
+            "idx": len(clips) + 1, "act": 1,
+            "scene_desc": scene, "environment": env,
+            "image_prompt": f"{scene} — {env}, {vstyle}, soft natural daylight, bright and cheerful",
             "motion_prompt": motion,
-            "img_url": None,
-            "vid_url": None,
-            "local_img": None,
-            "local_vid": None,
-            "status": "pending",
+            "img_url": None, "vid_url": None, "local_img": None, "local_vid": None, "status": "pending",
         })
 
-    log.info(f"📋 Storyboard erstellt: {len(clips)} Clips")
+    for i, line in enumerate(story_lines):
+        env = ENVIRONMENTS[act2_envs[i] % len(ENVIRONMENTS)]
+        scene = f"Max and Mia: '{line.rstrip('!')}'"
+        clips.append({
+            "idx": len(clips) + 1, "act": 2,
+            "scene_desc": scene, "lyric_line": line, "environment": env,
+            "image_prompt": f"{scene} — {env}, {vstyle}, soft natural daylight, bright and cheerful",
+            "motion_prompt": act2_motions[i],
+            "img_url": None, "vid_url": None, "local_img": None, "local_vid": None, "status": "pending",
+        })
+
+    for scene, env_idx, motion in act3:
+        env = ENVIRONMENTS[env_idx % len(ENVIRONMENTS)]
+        clips.append({
+            "idx": len(clips) + 1, "act": 3,
+            "scene_desc": scene, "environment": env,
+            "image_prompt": f"{scene} — {env}, {vstyle}, soft natural daylight, bright and cheerful",
+            "motion_prompt": motion,
+            "img_url": None, "vid_url": None, "local_img": None, "local_vid": None, "status": "pending",
+        })
+
+    log.info(f"📋 Storyboard: {len(clips)} Clips — Akt1=8 Akt2=19 Akt3=9 | Thema: {title}")
+    log.info(f"   📚 Lernziel: {learn}")
     return clips
 
 
