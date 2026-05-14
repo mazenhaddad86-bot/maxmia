@@ -50,29 +50,63 @@ def _load_cookies() -> list[dict]:
 
 
 async def _ensure_unlimited(page) -> bool:
-    """Prüft Unlimited Toggle und aktiviert ihn falls nötig. Gibt True zurück wenn ON."""
+    """
+    ══════════════════════════════════════════════════════════════
+    ⚠️  PFLICHT-REGEL — WIRD VOR JEDER GENERIERUNG AUFGERUFEN ⚠️
+    ══════════════════════════════════════════════════════════════
+    Nano Banana Pro Plan:
+      Toggle ON  (Unlimited) → Bilder: 0 Credits, Videos: 0 Credits
+      Toggle OFF             → Bilder: 2 Credits, Videos: ~10 Credits
+    Kling 2.5 Turbo + 720p sind NUR kostenlos wenn Toggle ON ist!
+
+    REGEL: Wenn Toggle nicht ON → SOFORT STOPPEN.
+           Niemals mit Toggle OFF generieren.
+    ══════════════════════════════════════════════════════════════
+    """
+    log.info("🔒 TOGGLE-CHECK: Prüfe Unlimited (Nano Banana Pro) vor Generierung...")
+
+    TOGGLE_SELECTORS = [
+        '[role="switch"]',
+        '[data-testid*="toggle"]',
+        'button[aria-checked]',
+        '[aria-label*="unlimited" i]',
+        '[aria-label*="unlimited" i]',
+        'button:has-text("Unlimited")',
+        'label:has-text("Unlimited") input[type="checkbox"]',
+    ]
+
     try:
-        # Toggle finden — mehrere Selektoren versuchen
-        for sel in ['[role="switch"]', '[data-testid*="toggle"]', 'button[aria-checked]']:
+        for sel in TOGGLE_SELECTORS:
             toggle = page.locator(sel).first
             if await toggle.count() > 0:
                 checked = await toggle.get_attribute("aria-checked")
+
                 if checked != "true":
-                    log.info("Toggle ist AUS → aktiviere...")
+                    log.warning(f"⚠️  Toggle AUS (aria-checked={checked!r}) → versuche zu aktivieren...")
                     await toggle.click()
-                    await page.wait_for_timeout(1500)
+                    await page.wait_for_timeout(2000)
                     checked = await toggle.get_attribute("aria-checked")
+
                 if checked == "true":
-                    log.info("✅ Unlimited Toggle: ON — 0 Credits!")
+                    log.info("✅ UNLIMITED TOGGLE: ON — Kling 2.5 Turbo + 720p = 0 Credits!")
                     return True
                 else:
-                    log.error("❌ Toggle bleibt AUS! Stoppe Generierung!")
-                    return False
-        log.warning("⚠️ Unlimited Toggle nicht gefunden — fahre trotzdem fort")
-        return True  # Wenn Toggle nicht gefunden, nicht blocken
+                    # HARD STOP — darf NICHT generieren ohne Toggle ON
+                    log.error("❌ KRITISCH: Unlimited Toggle bleibt AUS nach Klick!")
+                    log.error("❌ STOPPE GENERIERUNG — würde Credits kosten!")
+                    log.error("❌ Bitte: 1) Higgsfield.ai öffnen 2) Toggle manuell aktivieren 3) Cookies erneuern")
+                    return False  # Caller muss sofort abbrechen
+
+        # Toggle nicht gefunden — AUCH STOPPEN (Sicherheitsprinzip)
+        log.error("❌ KRITISCH: Unlimited Toggle nicht gefunden auf der Seite!")
+        log.error("❌ Seiten-URL: " + page.url)
+        log.error("❌ STOPPE GENERIERUNG — Toggle-Status unbekannt, kein Risiko eingehen!")
+        return False  # Sicher ist sicher — nicht weitermachen wenn Toggle unbekannt
+
     except Exception as e:
-        log.warning(f"Toggle-Check Fehler: {e}")
-        return True  # Im Fehlerfall nicht blocken
+        log.error(f"❌ KRITISCH: Toggle-Check Exception: {e}")
+        log.error("❌ STOPPE GENERIERUNG — Toggle-Status konnte nicht geprüft werden!")
+        return False  # Im Fehlerfall IMMER stoppen
 
 
 async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
