@@ -114,7 +114,19 @@ async def _new_browser_context(p):
     return browser, ctx
 
 
-async def _generate_image_async(prompt: str, aspect_ratio: str = "16:9") -> str:
+async def _download_with_ctx(ctx, url: str, dest: Path) -> None:
+    """Lädt Datei mit Playwright-Kontext herunter (hat Session-Cookies → kein 403)."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    response = await ctx.request.get(url)
+    if not response.ok:
+        raise IOError(f"Download fehlgeschlagen: HTTP {response.status} für {url[:80]}")
+    body = await response.body()
+    dest.write_bytes(body)
+    log.info(f"💾 Gespeichert: {dest.name} ({len(body)//1024}KB)")
+
+
+async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str = "16:9") -> str:
+    """Generiert Bild und speichert es direkt mit Session-Cookies (kein 403)."""
     from playwright.async_api import async_playwright
 
     full_prompt = f"{CHAR_PROMPT} Scene: {prompt}"
@@ -123,18 +135,16 @@ async def _generate_image_async(prompt: str, aspect_ratio: str = "16:9") -> str:
         browser, ctx = await _new_browser_context(p)
         page = await ctx.new_page()
 
-        # Navigiere mit Retry
         ok = await _goto_with_retry(page, HIGGSFIELD_IMAGE_URL)
         if not ok:
             await browser.close()
             raise TimeoutError("higgsfield.ai nicht erreichbar nach 3 Versuchen")
 
-        # Login check
         if "login" in page.url or "signin" in page.url:
             await browser.close()
             raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
 
-        # Unlimited Toggle MUSS ON sein — kein Toggle = kein Bild
+        # Unlimited Toggle MUSS ON sein
         ok = await _ensure_unlimited(page)
         if not ok:
             await browser.close()
@@ -149,9 +159,9 @@ async def _generate_image_async(prompt: str, aspect_ratio: str = "16:9") -> str:
         except Exception:
             pass
 
-        # Prompt eingeben — triple_click gibt es nicht → click(click_count=3)
+        # Prompt eingeben
         box = page.locator("textarea").first
-        await box.click(click_count=3)  # Alles markieren
+        await box.click(click_count=3)
         await box.fill(full_prompt)
         await page.wait_for_timeout(600)
 
@@ -166,26 +176,32 @@ async def _generate_image_async(prompt: str, aspect_ratio: str = "16:9") -> str:
         while time.time() < deadline:
             await page.wait_for_timeout(4000)
             candidates = page.locator(
-                "img[src*='cloudfront'], img[src*='cdn.higgsfield'], img[src*='storage']"
+                "img[src*='cloudfront'], img[src*='cdn.higgsfield'], img[src*='storage'], img[src*='higgs.ai']"
             )
             n = await candidates.count()
             if n > 0:
                 url = await candidates.last.get_attribute("src")
                 if url and url.startswith("http") and "loading" not in url:
                     img_url = url
-                    log.info(f"✅ Bild fertig: {url[:80]}")
+                    log.info(f"✅ Bild bereit: {url[:80]}")
                     break
 
+        if not img_url:
+            await browser.close()
+            raise TimeoutError("Kein Bild nach 5 Minuten")
+
+        # Mit Session-Cookies herunterladen — kein 403!
+        await _download_with_ctx(ctx, img_url, save_path)
         await browser.close()
 
-    if not img_url:
-        raise TimeoutError("Kein Bild nach 5 Minuten")
     return img_url
 
 
 async def _generate_video_async(
-    image_url: str, prompt: str, duration: int = 5, aspect_ratio: str = "16:9"
+    image_path: Path, prompt: str, duration: int = 5, aspect_ratio: str = "16:9",
+    save_path: Path = None,
 ) -> str:
+    """Generiert Video aus lokalem Bild und speichert es mit Session-Cookies."""
     from playwright.async_api import async_playwright
 
     full_prompt = f"{CHAR_PROMPT} Motion: {prompt}"
@@ -203,33 +219,24 @@ async def _generate_video_async(
             await browser.close()
             raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
 
-        # Unlimited Toggle MUSS ON sein
         ok = await _ensure_unlimited(page)
         if not ok:
             await browser.close()
             raise RuntimeError("Unlimited Toggle AUS — Abbruch!")
 
-        # Referenzbild hochladen
+        # Lokales Bild hochladen
         try:
             upload_input = page.locator("input[type='file']").first
-            if await upload_input.count() > 0:
-                await page.evaluate(f"""
-                    fetch('{image_url}')
-                        .then(r => r.blob())
-                        .then(blob => {{
-                            const dt = new DataTransfer();
-                            dt.items.add(new File([blob], 'ref.jpg', {{type: 'image/jpeg'}}));
-                            document.querySelector('input[type="file"]').files = dt.files;
-                            document.querySelector('input[type="file"]').dispatchEvent(new Event('change', {{bubbles: true}}));
-                        }});
-                """)
+            if await upload_input.count() > 0 and image_path and image_path.exists():
+                await upload_input.set_input_files(str(image_path))
                 await page.wait_for_timeout(2000)
+                log.info(f"📎 Bild hochgeladen: {image_path.name}")
         except Exception as e:
-            log.warning(f"Referenzbild-Upload fehlgeschlagen: {e}")
+            log.warning(f"Bild-Upload fehlgeschlagen: {e}")
 
         # Prompt eingeben
         box = page.locator("textarea").first
-        await box.click(click_count=3)  # triple_click → click_count=3
+        await box.click(click_count=3)
         await box.fill(full_prompt)
         await page.wait_for_timeout(600)
 
@@ -243,27 +250,41 @@ async def _generate_video_async(
         deadline = time.time() + 480
         while time.time() < deadline:
             await page.wait_for_timeout(5000)
-            candidates = page.locator("video source, video[src]")
+            candidates = page.locator("video source[src], video[src]")
             n = await candidates.count()
             if n > 0:
                 url = await candidates.last.get_attribute("src")
                 if url and url.startswith("http"):
                     vid_url = url
-                    log.info(f"✅ Video fertig: {url[:80]}")
+                    log.info(f"✅ Video bereit: {url[:80]}")
                     break
 
+        if not vid_url:
+            await browser.close()
+            raise TimeoutError("Kein Video nach 8 Minuten")
+
+        # Mit Session-Cookies herunterladen
+        if save_path:
+            await _download_with_ctx(ctx, vid_url, save_path)
         await browser.close()
 
-    if not vid_url:
-        raise TimeoutError("Kein Video nach 8 Minuten")
     return vid_url
 
 
 # ── Öffentliche Sync-API ─────────────────────────────────────────────────────
 
-def generate_image(prompt: str, aspect_ratio: str = "16:9") -> str:
-    return asyncio.run(_generate_image_async(prompt, aspect_ratio))
+def generate_image(prompt: str, save_path: Path = None, aspect_ratio: str = "16:9") -> str:
+    """Generiert Bild, speichert nach save_path, gibt URL zurück."""
+    if save_path is None:
+        save_path = Path("/tmp/hf_img_tmp.jpg")
+    return asyncio.run(_generate_image_async(prompt, Path(save_path), aspect_ratio))
 
 
-def generate_video(image_url: str, prompt: str, duration: int = 5, aspect_ratio: str = "16:9") -> str:
-    return asyncio.run(_generate_video_async(image_url, prompt, duration, aspect_ratio))
+def generate_video(image_path, prompt: str, save_path: Path = None,
+                   duration: int = 5, aspect_ratio: str = "16:9") -> str:
+    """Generiert Video aus lokalem Bild, speichert nach save_path, gibt URL zurück."""
+    return asyncio.run(_generate_video_async(
+        Path(image_path) if image_path else None,
+        prompt, duration, aspect_ratio,
+        save_path=Path(save_path) if save_path else None,
+    ))

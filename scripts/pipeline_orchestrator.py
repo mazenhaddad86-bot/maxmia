@@ -447,44 +447,57 @@ def run_pipeline():
     clips_dir = song_dir / "clips"
     clips_dir.mkdir(exist_ok=True)
 
-    # 3. Bilder generieren
-    log.info(f"\n🎨 Phase 1: Bilder generieren ({len(clips)} Stück)...")
+    total = len(clips)
+
+    # 3. Bilder generieren — direkt mit Session-Cookies (kein 403 mehr)
+    log.info(f"\n🎨 Phase 1: Bilder generieren ({total} Stück)...")
     for i, clip in enumerate(clips):
+        local_img = clips_dir / f"img_{i+1:02d}.jpg"
         try:
-            log.info(f"  [{i+1:02d}/36] {clip['scene_desc'][:50]}")
-            img_url = generate_image(clip["image_prompt"])
-            local_img = clips_dir / f"img_{i+1:02d}.jpg"
-            download_file(img_url, local_img)
+            log.info(f"  [{i+1:02d}/{total}] Akt{clip.get('act','-')}: {clip['scene_desc'][:55]}")
+            img_url = generate_image(
+                clip["image_prompt"],
+                save_path=local_img,
+            )
             clip["img_url"] = img_url
             clip["local_img"] = str(local_img)
             clip["status"] = "img_done"
             save_jobs(song_dir, clips)
-            time.sleep(2)  # Kurze Pause zwischen Requests
+            time.sleep(1)
         except Exception as e:
             log.error(f"  ❌ Bild {i+1} fehlgeschlagen: {e}")
             clip["status"] = f"img_error: {e}"
             save_jobs(song_dir, clips)
 
-    # 4. Videos generieren
-    log.info(f"\n🎬 Phase 2: Videos animieren ({len(clips)} Stück)...")
+    img_ok = sum(1 for c in clips if c.get("status") == "img_done")
+    log.info(f"✅ Bilder fertig: {img_ok}/{total}")
+
+    # 4. Videos generieren — lokales Bild hochladen, Video mit Cookies laden
+    log.info(f"\n🎬 Phase 2: Videos animieren ({total} Stück)...")
     for i, clip in enumerate(clips):
-        if not clip.get("img_url"):
+        if not clip.get("local_img") or not Path(clip["local_img"]).exists():
             log.warning(f"  [{i+1:02d}] Kein Bild → überspringe")
             continue
+        local_vid = clips_dir / f"vid_{i+1:02d}.mp4"
         try:
-            log.info(f"  [{i+1:02d}/36] {clip['scene_desc'][:50]}")
-            vid_url = generate_video(clip["img_url"], clip["motion_prompt"])
-            local_vid = clips_dir / f"vid_{i+1:02d}.mp4"
-            download_file(vid_url, local_vid)
+            log.info(f"  [{i+1:02d}/{total}] Akt{clip.get('act','-')}: {clip['scene_desc'][:55]}")
+            vid_url = generate_video(
+                image_path=clip["local_img"],
+                prompt=clip["motion_prompt"],
+                save_path=local_vid,
+            )
             clip["vid_url"] = vid_url
             clip["local_vid"] = str(local_vid)
             clip["status"] = "vid_done"
             save_jobs(song_dir, clips)
-            time.sleep(3)
+            time.sleep(2)
         except Exception as e:
             log.error(f"  ❌ Video {i+1} fehlgeschlagen: {e}")
             clip["status"] = f"vid_error: {e}"
             save_jobs(song_dir, clips)
+
+    vid_ok = sum(1 for c in clips if c.get("status") == "vid_done")
+    log.info(f"✅ Videos fertig: {vid_ok}/{total}")
 
     # 5. Musik generieren via Suno
     log.info("\n🎵 Phase 3: Musik generieren via Suno...")
