@@ -224,26 +224,84 @@ async def _generate_video_async(
             await browser.close()
             raise RuntimeError("Unlimited Toggle AUS — Abbruch!")
 
+        # Screenshot für Debugging speichern
+        try:
+            await page.screenshot(path="/tmp/hf_video_page.png", full_page=False)
+            log.info(f"📸 Screenshot: /tmp/hf_video_page.png — URL: {page.url}")
+        except Exception:
+            pass
+
+        # Alle sichtbaren Buttons loggen (für Debugging)
+        try:
+            buttons = page.locator("button:visible")
+            n_btns = await buttons.count()
+            btn_texts = []
+            for i in range(min(n_btns, 15)):
+                t = await buttons.nth(i).text_content()
+                if t:
+                    btn_texts.append(t.strip()[:30])
+            log.info(f"🔍 Sichtbare Buttons ({n_btns}): {btn_texts}")
+        except Exception as e:
+            log.warning(f"Button-Debug fehlgeschlagen: {e}")
+
         # Lokales Bild hochladen
         try:
             upload_input = page.locator("input[type='file']").first
             if await upload_input.count() > 0 and image_path and image_path.exists():
                 await upload_input.set_input_files(str(image_path))
-                await page.wait_for_timeout(2000)
+                await page.wait_for_timeout(3000)
                 log.info(f"📎 Bild hochgeladen: {image_path.name}")
+            else:
+                log.warning(f"⚠️ Kein file-input gefunden (count={await upload_input.count()})")
         except Exception as e:
             log.warning(f"Bild-Upload fehlgeschlagen: {e}")
 
         # Prompt eingeben
-        box = page.locator("textarea").first
-        await box.click(click_count=3)
-        await box.fill(full_prompt)
-        await page.wait_for_timeout(600)
+        try:
+            box = page.locator("textarea").first
+            if await box.count() > 0:
+                await box.click(click_count=3)
+                await box.fill(full_prompt)
+                await page.wait_for_timeout(600)
+            else:
+                log.warning("⚠️ Keine textarea gefunden auf Video-Seite")
+        except Exception as e:
+            log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
 
-        # Generate
-        btn = page.locator("button:has-text('Generate')").first
-        await btn.click()
-        log.info(f"🎬 Generiere Video: {prompt[:60]}...")
+        # Generate/Animate Button — mehrere Selektoren versuchen
+        VIDEO_BTN_SELECTORS = [
+            "button:has-text('Generate')",
+            "button:has-text('Animate')",
+            "button:has-text('Create')",
+            "button:has-text('Run')",
+            "button:has-text('Submit')",
+            "button:has-text('Create Video')",
+            "button:has-text('Generate Video')",
+            "button[type='submit']",
+        ]
+        clicked = False
+        for sel in VIDEO_BTN_SELECTORS:
+            try:
+                btn = page.locator(sel).first
+                if await btn.count() > 0:
+                    await btn.click(timeout=5000)
+                    log.info(f"🎬 Generiere Video mit '{sel}': {prompt[:50]}...")
+                    clicked = True
+                    break
+            except Exception:
+                pass
+
+        if not clicked:
+            # Letzter Versuch: erster enabled submit-ähnlicher Button
+            try:
+                all_btns = page.locator("button:not([disabled])").last
+                await all_btns.click(timeout=5000)
+                log.info(f"🎬 Generiere Video (letzter Button): {prompt[:50]}...")
+                clicked = True
+            except Exception as e:
+                log.error(f"❌ Kein Generate-Button gefunden: {e}")
+                await browser.close()
+                raise RuntimeError(f"Generate-Button nicht gefunden. Buttons waren: {btn_texts}")
 
         # Warten (max 8 Min für Video)
         vid_url = None
