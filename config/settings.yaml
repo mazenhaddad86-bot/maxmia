@@ -1,0 +1,84 @@
+# =====================================================================
+# Pipeline-weite Einstellungen — Max & Mia World
+# =====================================================================
+#
+# ⚠️  CONTENT-SICHERHEIT (IMMER VOR JEDEM PROMPT PRÜFEN):
+# → Fallen + Aufprall = OK (cartoon-haft, witzig)
+# → Zerbrechen, Blut, Gewalt, Schock-Reaktionen = VERBOTEN
+# → Alles muss für 3-Jährige safe sein: sanft, lächelnd, family-safe
+# → Nach Generierung: Video ansehen und auf Gewalt/NSFW prüfen!
+#
+# ⚠️  HIGGSFIELD WICHTIGE REGELN (IMMER EINHALTEN):
+# 1. Unlimited-Toggle IMMER AN (grün) bevor Generate geklickt wird!
+#    → Unlimited = kostenlose Generierung via Nano Banana Pro
+#    → Wenn Unlimited AUS → kostet echte Credits!
+# 2. Batch IMMER auf 1/4 lassen (nicht 4/4 — das deaktiviert Unlimited!)
+# 3. Referenzbild: C:\Users\myshi\Downloads\maxmia.png
+#    → Workflow: Higgsfield Image-Seite → irgendein Max&Mia Bild aus History anklicken
+#    → rechts auf "Reference" klicken → Bild landet als Referenz im Prompt
+#    → DAS am Anfang jeder Session einmalig machen!
+# 4. Mehrere Bilder: 4x schnell hintereinander Generate klicken
+#    (nicht auf Ergebnis warten — sofort nächsten Prompt eingeben)
+# =====================================================================
+
+channel:
+  name: "Max & Mia World"
+  handle: "@MaxAndMiaWorld"
+  niche: "Kids nursery rhymes, educational songs, 3D Pixar-style animation"
+  characters: "Max (boy, age 3) and Mia (girl, age 3)"
+
+# Welche Plattformen sollen veröffentlichen?
+# Wird zusätzlich durch *_ENABLED Flags in .env gegated.
+publish_to:
+  youtube_landscape: true     # 16:9 Normalvideo (3-5 Min)
+  youtube_shorts: true        # 9:16 Shorts (selbes Video, vertikal gecroppt)
+  instagram_reels: true       # 9:16 Reels
+  tiktok: true                # 9:16 — braucht App-Audit für öffentliche Posts
+  facebook: false             # optional später
+
+# Posting-Zeit-Strategie (lokale Zeitzone)
+schedule:
+  timezone: "Europe/Berlin"
+  # Wenn nichts angegeben → sofort posten nach Generierung
+  # Optional: Tageszeiten an denen die Pipeline läuft (cron)
+  daily_run_times:
+    - "08:00"
+    - "18:30"
+
+# Höchstwerte zur Sicherheit (Rate-Limit-Schutz)
+limits:
+  videos_per_day_max: 4
+  retry_on_fail: 3
+  cooldown_seconds_between_uploads: 90
+
+# Higgsfield-Modell-Auswahl
+video_length_sec: 180
+
+higgsfield:
+  image_model: "nano_banana_2"        # 2 credits/image (CLI), gratis im Browser
+
+  # ── VIDEO-MODELL REGEL (IMMER EINHALTEN) ────────────────────────────────
+  # 🎵 MUSIK-VIDEOS (over-music, nursery rhymes, Songs):
+  #    → kling_2_5_turbo + Unlimited (Browser) = GRATIS, 5s, 720p
+  # 🗣️  LERN-VIDEOS (Charaktere reden/sprechen):
+  #    → kling_2_6_no_sound  (5 credits/5s)
+  #    → veo3_1_lite         (günstig, gut für Dialog-Szenen)
+  # ─────────────────────────────────────────────────────────────────────────
+  video_model_music: "kling_2_5_turbo"      # GRATIS via Browser Unlimited
+  video_model_talking: "kling_2_6_no_sound" # 5 credits/5s — für Lernvideos
+  video_model_talking_alt: "veo3_1_lite"    # Alternative für Lernvideos
+  video_duration_sec: 5               # 5s Clips
+  video_resolution: "720p"
+  video_aspect_ratio: "16:9"
+
+# Suno-Modell
+suno:
+  model: "v4_5"
+  instrumental: true
+  duration_target_sec: 30
+
+# Caption / Hashtag-Verhalten
+captions:
+  add_hashtags: true
+  max_caption_length: 2200      # IG-Limit
+  emoji_intensity: "medium"     # off | light | medium | heavy

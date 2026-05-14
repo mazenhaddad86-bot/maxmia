@@ -1,0 +1,930 @@
+strategy: round_robin
+
+hashtags:
+  - "#MaxAndMiaWorld"
+  - "#nurseryrhymes"
+  - "#kidssongs"
+  - "#babysongs"
+  - "#learningforkids"
+  - "#kindergarten"
+  - "#kidsvideos"
+  - "#childrensmusic"
+  - "#toddlerlearning"
+  - "#toddlerlearning"
+  - "#educationalvideos"
+  - "#maxandmia"
+
+# ─────────────────────────────────────────────────────────────────────────
+# CHARACTERS: Max (Junge, blau) + Mia (Mädchen, pink) — immer beide sichtbar
+# CONTENT POLICY: Traditionell, familiensicher, keine unangemessenen Inhalte
+# LEARNING: Jedes Video hat Lernelemente (ABC, Zahlen, Farben, Formen, Tiere)
+# QUESTIONS: Interaktive Fragen in [Bridge]-Segmenten (ohne Musik)
+# ─────────────────────────────────────────────────────────────────────────
+
+themes:
+
+  # ── 1. ZAHLEN 1-10 (Counting Song) ──────────────────────────────────────
+  - id: counting-1-10
+    title: "Count to 10 with Max and Mia!"
+    caption: "Learn Numbers 1 to 10 with Max & Mia! Fun counting song for toddlers 🔢"
+    extra_tags: ["#counting", "#numbers", "#123", "#math", "#toddlers"]
+    visual_style: "giant glowing number displays, colorful balls to count, bright classroom setting"
+    suno_style: "counting song, educational, clear and fun, children's music, upbeat, clap along"
+    music_style: "happy counting nursery rhyme with number sound effects"
+    learn_element: "numbers 1-10"
+    interactive_questions:
+      - question: "How many apples do you see?"
+        answer: "3 apples!"
+        visual: "3 red apples shown large on screen"
+      - question: "What number comes after 5?"
+        answer: "SIX! 6!"
+        visual: "numbers 5 and 6 shown big and colorful"
+    lyrics: |
+      [Intro]
+      Let's count together, one by one!
+      Max and Mia make counting fun!
+
+      [Verse 1]
+      One little star shining bright
+      Two little birds taking flight
+      Three red apples on a tree
+      Four yellow flowers, come and see!
+
+      [Chorus]
+      One two three, count with me!
+      Four five six, how fun can it be!
+      Seven eight nine, you're doing fine!
+      Ten! Let's count one more time!
+
+      [Verse 2]
+      Five bouncy balls rolling around
+      Six little frogs jumping to the ground
+      Seven fluffy clouds up in the sky
+      Eight butterflies flying up high!
+
+      [Chorus]
+      One two three, count with me!
+      Four five six, how fun can it be!
+      Seven eight nine, you're doing fine!
+      Ten! Let's count one more time!
+
+      [Bridge]
+      Can you count along with me?
+      Point your finger, what do you see?
+      One! Two! Three! Four! Five!
+      Counting makes you feel alive!
+      Six! Seven! Eight! Nine! Ten!
+      Shall we count it all again?
+
+      [Verse 3]
+      Nine little stars on your birthday cake
+      Ten big waves in the shimmery lake
+      Max counts high and Mia counts too
+      Numbers are for me and you!
+
+      [Chorus]
+      One two three, count with me!
+      Four five six, how fun can it be!
+      Seven eight nine, you're doing fine!
+      Ten! Let's count one more time!
+
+      [Outro]
+      Now you know one to ten!
+      You are so clever, let's count again!
+      Max says: Great job today!
+      Mia says: Hip hip hooray!
+
+  # ── 2. FARBEN (Colors Song) ──────────────────────────────────────────────
+  - id: colors-song
+    title: "Learn Colors with Max and Mia!"
+    caption: "Red Yellow Blue — Learn all the Colors with Max & Mia! 🌈 Kids Educational Song"
+    extra_tags: ["#colors", "#coloursong", "#rainbow", "#preschool", "#educational"]
+    visual_style: "giant colorful paint splashes, rainbow background, colorful toys and objects"
+    suno_style: "colors learning song, bright and cheerful, educational children's music, upbeat"
+    music_style: "colorful cheerful learning song with paint splash sounds"
+    learn_element: "colors: red, blue, yellow, green, orange, purple, pink, white, black"
+    interactive_questions:
+      - question: "What color is the sky?"
+        answer: "BLUE! The sky is blue!"
+        visual: "blue sky with clouds shown large"
+      - question: "What color is a strawberry?"
+        answer: "RED! Red like a strawberry!"
+        visual: "big red strawberry shown"
+    lyrics: |
+      [Intro]
+      Open your eyes, what do you see?
+      Colors all around, come learn with me!
+
+      [Verse 1]
+      Red is the apple, red is the rose
+      Red is the firetruck, everyone knows
+      Blue is the sky, blue is the sea
+      Blue is the blueberry, pretty as can be!
+
+      [Chorus]
+      Red orange yellow green!
+      Blue purple pink in between!
+      All the colors that we know
+      Make the whole wide world aglow!
+
+      [Verse 2]
+      Yellow is the sun shining up high
+      Yellow is the lemon, yellow butterfly!
+      Green is the grass, green is a frog
+      Green is the turtle sitting on a log!
+
+      [Chorus]
+      Red orange yellow green!
+      Blue purple pink in between!
+      All the colors that we know
+      Make the whole wide world aglow!
+
+      [Bridge]
+      Max holds up something RED — can you see?
+      Mia holds up something BLUE — what could it be?
+      Look around your room right now!
+      Find a color, take a bow!
+      What color do YOU see today?
+      Shout it out, hip hip hooray!
+
+      [Verse 3]
+      Orange is a carrot, orange is a sun
+      Purple is a grape, eating is such fun!
+      Pink is a flamingo standing tall and proud
+      White is a snowflake falling from a cloud!
+
+      [Chorus]
+      Red orange yellow green!
+      Blue purple pink in between!
+      All the colors that we know
+      Make the whole wide world aglow!
+
+      [Outro]
+      Now you know your colors too!
+      Red and green and orange and blue!
+      Max says: You're so smart today!
+      Mia says: Colors make us gay— happy and bright all day!
+
+  # ── 3. ABC SONG (Alphabet) ───────────────────────────────────────────────
+  - id: abc-song
+    title: "ABC Song — Learn the Alphabet with Max and Mia!"
+    caption: "Learn the Alphabet A to Z with Max & Mia! ABC Song for Kids 🔤"
+    extra_tags: ["#abcsong", "#alphabet", "#learning", "#preschool", "#educational"]
+    visual_style: "giant 3D colorful alphabet letters, each letter transforms into an object, magical classroom"
+    suno_style: "classic ABC song, educational, clear pronunciation, bright and cheerful, children's music"
+    music_style: "classic ABC educational song clear and bright"
+    learn_element: "alphabet A-Z with example words"
+    interactive_questions:
+      - question: "What letter does APPLE start with?"
+        answer: "A! Apple starts with A!"
+        visual: "big letter A with a red apple"
+      - question: "Can you find something that starts with B?"
+        answer: "Ball! Banana! Bear! Great!"
+        visual: "letter B with ball, banana, bear"
+    lyrics: |
+      [Intro]
+      Come and learn the alphabet with me
+      Max and Mia, A B C!
+
+      [Verse 1]
+      A is for Apple, shiny and red
+      B is for Ball that Max kicked ahead
+      C is for Cat that Mia loves to pet
+      D is for Dog, the best friend you can get!
+      E is for Elephant, big and strong and gray
+      F is for Flower blooming every day!
+
+      [Chorus]
+      A B C D E F G!
+      H I J K L M N O P!
+      Q R S — T U V!
+      W X — Y and Z!
+      Now we know our ABC!
+      Sing along with Mia and me!
+
+      [Verse 2]
+      G is for Giraffe with a neck so tall
+      H is for House, our home for us all
+      I is for Ice cream — Max's favorite treat!
+      J is for Jump — jump up on your feet!
+      K is for Kite flying in the breeze
+      L is for Lion in the tall green trees!
+
+      [Chorus]
+      A B C D E F G!
+      H I J K L M N O P!
+      Q R S — T U V!
+      W X — Y and Z!
+      Now we know our ABC!
+      Sing along with Mia and me!
+
+      [Bridge]
+      Max says: Can you think of a word?
+      Mia asks: What letter have you heard?
+      Point to something — what does it start with?
+      A? B? C? Which letter is it?
+      Look around and find the letter true!
+      ABC belongs to you!
+
+      [Verse 3]
+      M is for Moon that lights up the night
+      N is for Nest — a cozy warm delight!
+      O is for Orange, sweet and round
+      P is for Piano making pretty sound!
+      Q is for Queen — Mia wears a crown!
+      R is for Rainbow going up and down!
+
+      [Verse 4]
+      S is for Star twinkling up so bright
+      T is for Tiger — roar with all your might!
+      U is for Umbrella in the rain
+      V is for Van going down the lane!
+      W is for Whale in the deep blue sea
+      X Y Z — sing along with me!
+
+      [Chorus]
+      A B C D E F G!
+      H I J K L M N O P!
+      Q R S — T U V!
+      W X — Y and Z!
+      Now we know our ABC!
+      Sing along with Mia and me!
+
+      [Outro]
+      A to Z — you learned them all!
+      Big letters, small letters — you know them all!
+      Max says: You are so smart today!
+      Mia says: Let's spell and learn each day!
+
+  # ── 4. CHOO CHOO TRAIN ───────────────────────────────────────────────────
+  - id: choo-choo-train
+    title: "Choo Choo Train Song — Max and Mia!"
+    caption: "All aboard! Choo Choo Train with Max & Mia! 🚂 Fun train song for toddlers!"
+    extra_tags: ["#trainsforkids", "#toddlers", "#transport"]
+    visual_style: "colorful cartoon train station, bright locomotive with smiling face, countryside landscape"
+    suno_style: "children's nursery rhyme, playful, fun, upbeat, sing along, toddler music, happy train sounds"
+    music_style: "happy upbeat train song with choo choo sounds"
+    learn_element: "transport, colors of the train, counting wagons"
+    interactive_questions:
+      - question: "What sound does a train make?"
+        answer: "CHOO CHOO! Wooo wooo!"
+        visual: "train with sound waves shown"
+      - question: "How many wagons does the train have?"
+        answer: "Count! 1, 2, 3, 4, 5 wagons!"
+        visual: "train with numbered wagons 1-5"
+    lyrics: |
+      [Intro]
+      All aboard! The train is here!
+      Max and Mia — cheer cheer cheer!
+
+      [Verse 1]
+      Early in the morning when the sun comes up
+      Max and Mia fill the engine up!
+      Steam is rising, whistle blowing loud
+      Chugging through the valley, under every cloud!
+
+      [Chorus]
+      Choo choo choo, the train is on its way!
+      Choo choo choo, we're learning as we play!
+      Red and blue and yellow — count the wagons too!
+      One two three four five — choo choo choo!
+
+      [Verse 2]
+      Rolling through the mountains, past the river wide
+      Mia counts the bridges — Max's by her side!
+      Over bridges, through the tunnels dark
+      Listen for the whistle, hear the engine spark!
+
+      [Chorus]
+      Choo choo choo, the train is on its way!
+      Choo choo choo, we're learning as we play!
+      Red and blue and yellow — count the wagons too!
+      One two three four five — choo choo choo!
+
+      [Bridge]
+      Max says: Can you count the wagons?
+      Mia says: One! Two! Three!
+      How many wagons do you see?
+      Count along with Max and me!
+      Four! Five! All the colors bright!
+      Red and blue and yellow light!
+
+      [Verse 3]
+      As the sun is setting, golden, warm and bright
+      Max and Mia wave — the train says goodnight!
+      Park it in the station, safe and sound to sleep
+      Dreams of tracks and learning, memories to keep!
+
+      [Chorus]
+      Choo choo choo, the train is on its way!
+      Choo choo choo, we're learning as we play!
+      Red and blue and yellow — count the wagons too!
+      One two three four five — choo choo choo!
+
+      [Outro]
+      Choo choo choo, goodnight little train!
+      Max and Mia will ride again!
+      We learned our colors and numbers today!
+      See you next time — hip hip hooray!
+
+  # ── 5. FIVE LITTLE DUCKS (Counting + Family) ────────────────────────────
+  - id: five-little-ducks
+    title: "Five Little Ducks — Count with Max and Mia!"
+    caption: "Five Little Ducks — Classic Counting Rhyme with Max & Mia! 🦆 Count 1-5!"
+    extra_tags: ["#ducks", "#counting", "#classicnurseryrhyme", "#family"]
+    visual_style: "bright blue sunny pond, lily pads and water reeds, rolling green hills in background"
+    suno_style: "classic nursery rhyme, gentle, sweet, counting song, children's lullaby style"
+    music_style: "classic nursery rhyme gentle and sweet with counting and duck quacks"
+    learn_element: "counting backwards 5-1, family, mother and baby animals"
+    interactive_questions:
+      - question: "How many ducks are left?"
+        answer: "Count! 1, 2, 3, 4 — FOUR ducks!"
+        visual: "4 ducks shown with number 4 big"
+      - question: "What does a duck say?"
+        answer: "QUACK QUACK QUACK!"
+        visual: "duck with speech bubble QUACK"
+    lyrics: |
+      [Intro]
+      One two three four five — little ducks alive!
+      Come count with Max and Mia!
+
+      [Verse 1]
+      Five little ducks went out one day
+      Over the hills and far away
+      Mama duck said quack quack quack quack
+      But only four little ducks came back!
+
+      [Chorus]
+      Quack quack quack, quack quack quack!
+      Count the ducks — are they coming back?
+      One! Two! Three! Four! Five!
+      Little ducks — we're glad you're alive!
+
+      [Verse 2]
+      Four little ducks went out one day
+      Over the hills and far away
+      Mama duck said quack quack quack quack
+      But only three little ducks came back!
+
+      [Chorus]
+      Quack quack quack, quack quack quack!
+      Count the ducks — are they coming back?
+      One! Two! Three! Four! Five!
+      Little ducks — we're glad you're alive!
+
+      [Verse 3]
+      Three little ducks went out one day
+      Over the hills and far away
+      Mama duck said quack quack quack quack
+      But only two little ducks came back!
+
+      [Verse 4]
+      Two little ducks went out one day
+      Over the hills and far away
+      Mama duck said quack quack quack quack
+      But only one little duck came back!
+
+      [Bridge]
+      Max asks: Where did the ducks go?
+      Mia counts: How many do you know?
+      One duck left — oh no, oh dear!
+      Mama duck calls — will they hear?
+      Quack quack quack! She calls out loud!
+      Can you quack along — make Mama proud?
+
+      [Verse 5]
+      Mama duck went out that day
+      Over the hills and far away
+      Mama duck said quack quack quack quack
+      And ALL five little ducks came back!
+
+      [Chorus]
+      Quack quack quack, quack quack quack!
+      All five ducks are coming back!
+      One! Two! Three! Four! Five!
+      All the little ducks — alive!
+
+      [Outro]
+      Five little ducks are home today!
+      Max and Mia learned to count today!
+      One to five — now you know!
+      Watch us again and help us grow!
+
+  # ── 6. SHAPES SONG (Formen) ──────────────────────────────────────────────
+  - id: shapes-song
+    title: "Learn Shapes with Max and Mia!"
+    caption: "Circle Square Triangle — Learn all Shapes with Max & Mia! ⭐ Kids Learning Song"
+    extra_tags: ["#shapes", "#circle", "#square", "#triangle", "#preschool", "#math"]
+    visual_style: "3D geometric shapes as friendly cartoon characters, colorful and bouncy, bright background"
+    suno_style: "shapes learning song, fun and educational, children's music, upbeat, clap along"
+    music_style: "playful shapes educational song with bouncy cartoon sounds"
+    learn_element: "shapes: circle, square, triangle, rectangle, star, heart, oval, diamond"
+    interactive_questions:
+      - question: "What shape is the sun?"
+        answer: "CIRCLE! The sun is a circle!"
+        visual: "circular sun shown with circle outline"
+      - question: "How many sides does a triangle have?"
+        answer: "THREE sides! 1, 2, 3!"
+        visual: "triangle with 3 sides highlighted"
+    lyrics: |
+      [Intro]
+      Shapes all around us, can you see?
+      Max and Mia — shapes for free!
+
+      [Verse 1]
+      A circle is round like the big bright sun
+      A circle has no corners — rolling is such fun!
+      A square has four sides all the same
+      Max draws a square — let's play the shape game!
+
+      [Chorus]
+      Circle square triangle star!
+      Shapes are everywhere you are!
+      Look around and what do you see?
+      Shapes with Max, Mia, and me!
+
+      [Verse 2]
+      A triangle has three sides — one two three!
+      Mia holds a triangle — can you see?
+      A rectangle is long with four sides bright
+      Like a door or a book — that's right!
+
+      [Chorus]
+      Circle square triangle star!
+      Shapes are everywhere you are!
+      Look around and what do you see?
+      Shapes with Max, Mia, and me!
+
+      [Bridge]
+      Max asks: What shape is this?
+      Mia asks: Can you name it — don't miss!
+      Look at the window — RECTANGLE!
+      Look at the wheel — CIRCLE!
+      What shape do YOU see right now?
+      Name it out loud and take a bow!
+
+      [Verse 3]
+      A star has five points shining in the night
+      Mia loves her star shape — she holds it tight!
+      A heart shape means love for you and me
+      Max and Mia — happy family!
+
+      [Chorus]
+      Circle square triangle star!
+      Shapes are everywhere you are!
+      Look around and what do you see?
+      Shapes with Max, Mia, and me!
+
+      [Outro]
+      Circle square triangle star!
+      You know your shapes — you're a superstar!
+      Max says: Look for shapes today!
+      Mia says: Shapes are everywhere — hooray!
+
+  # ── 7. ANIMALS & SOUNDS ──────────────────────────────────────────────────
+  - id: animals-sounds
+    title: "Animal Sounds with Max and Mia!"
+    caption: "What does the cow say? Learn Animal Sounds with Max & Mia! 🐄🐶🐱 Kids Song"
+    extra_tags: ["#animalsounds", "#farmanimals", "#zoo", "#toddlers", "#educational"]
+    visual_style: "colorful cartoon farm and zoo, friendly smiling animals, bright sunny setting"
+    suno_style: "animal sounds song, fun and educational, each animal has its sound effect, upbeat children's music"
+    music_style: "fun animal sounds learning song with real animal sound effects"
+    learn_element: "animals and their sounds: cow moo, dog woof, cat meow, duck quack, lion roar, elephant trumpet"
+    interactive_questions:
+      - question: "What does a dog say?"
+        answer: "WOOF WOOF! The dog says woof!"
+        visual: "friendly cartoon dog with WOOF speech bubble"
+      - question: "Which is the biggest animal?"
+        answer: "The ELEPHANT! It's huge!"
+        visual: "elephant next to small animals for size comparison"
+    lyrics: |
+      [Intro]
+      Max and Mia love animals so!
+      What sounds do they make? Let's go!
+
+      [Verse 1]
+      The cow says MOO, the cow says MOO
+      Max milks the cow — how about you?
+      The dog says WOOF, the dog says WOOF
+      Mia pets the puppy on the roof!
+
+      [Chorus]
+      Moo moo moo says the cow!
+      Woof woof woof — bow wow wow!
+      Quack quack quack says the duck!
+      Animals are the best — good luck!
+
+      [Verse 2]
+      The cat says MEOW, the cat says MEOW
+      Max strokes the kitty — he knows how!
+      The duck says QUACK, the duck says QUACK
+      Mia chases duckies — quack quack quack!
+
+      [Chorus]
+      Moo moo moo says the cow!
+      Woof woof woof — bow wow wow!
+      Quack quack quack says the duck!
+      Animals are the best — good luck!
+
+      [Bridge]
+      Max asks: Can you make this sound?
+      ROAR says the lion — shake the ground!
+      Mia shows an elephant — trumpet high!
+      The frog goes ribbit under the sky!
+      What animal sound can YOU make?
+      Try it now — for learning's sake!
+
+      [Verse 3]
+      The lion says ROAR so big and loud
+      Max roars along — he's very proud!
+      The elephant says TRUMPET in the air
+      Mia laughs and waves without a care!
+
+      [Verse 4]
+      The sheep says BAA, the bee goes BUZZ
+      The frog says RIBBIT just because!
+      The bird sings TWEET up in the tree
+      Animals are for you and me!
+
+      [Chorus]
+      Moo moo moo says the cow!
+      Woof woof woof — bow wow wow!
+      Quack quack quack says the duck!
+      Animals are the best — good luck!
+
+      [Outro]
+      Max and Mia love each animal friend!
+      Learning animal sounds — it never ends!
+      MOO WOOF MEOW QUACK ROAR!
+      Come back and learn with us some more!
+
+  # ── 8. RESPEKT — ELTERN EHREN (Anti-Peppa-Pig-Prinzip) ──────────────────
+  # Peppa Pig wurde in China verboten weil sie ihren Vater respektlos behandelt.
+  # Max und Mia sind das Gegenteil: liebevoll, respektvoll, vorbildlich.
+  - id: listen-to-mama-papa
+    title: "Listen to Mama and Papa — Max and Mia!"
+    caption: "Max & Mia always listen to Mama and Papa! Respect & Values Song for Kids"
+    extra_tags: ["#respect", "#family", "#goodbehavior", "#parenting", "#values", "#manners"]
+    visual_style: "warm cozy family home, loving parents, cheerful family setting, golden warm lighting"
+    suno_style: "warm heartfelt children's song, family values, gentle melody, feel-good, loving"
+    music_style: "gentle warm family values song with loving melody"
+    learn_element: "respect for parents, listening, family love, obedience shown with love not fear"
+    interactive_questions:
+      - question: "What do you say when Mama calls you?"
+        answer: "YES MAMA! Coming Mama!"
+        visual: "Max running happily to Mama with big smile"
+      - question: "How do we talk to Papa?"
+        answer: "Kindly! With love and respect!"
+        visual: "Mia hugging Papa warmly"
+    lyrics: |
+      [Intro]
+      Max and Mia love Mama and Papa so!
+      They always listen — ready? Let's go!
+
+      [Verse 1]
+      When Mama calls Max he runs right away
+      Yes Mama, I'm coming is what he will say!
+      He never says no and he never says later
+      Because Mama and Papa no one is greater!
+
+      [Chorus]
+      Listen to Mama, listen to Papa!
+      They love us so much near and far!
+      When they speak we listen well
+      That's the best way you can tell!
+      Mama Papa we love you!
+      We will always listen to you!
+
+      [Verse 2]
+      When Papa says bedtime Mia goes right to sleep
+      Goodnight Papa she says and her promises keep!
+      She doesn't argue and doesn't complain
+      Because Papa's love is like warm summer rain!
+
+      [Chorus]
+      Listen to Mama, listen to Papa!
+      They love us so much near and far!
+      When they speak we listen well
+      That's the best way you can tell!
+      Mama Papa we love you!
+      We will always listen to you!
+
+      [Bridge]
+      Max says when Mama asks me to help
+      I help right away I do it myself!
+      Mia says when Papa says please clean your room
+      I grab my toys and I grab my broom!
+      Can you listen to Mama today?
+      Can you listen to Papa hip hooray?
+
+      [Verse 3]
+      At dinner they sit and they thank God above
+      They say please and thank you with gratitude and love!
+      Max helps Mama set up every plate
+      Mia helps Papa they all celebrate!
+
+      [Chorus]
+      Listen to Mama, listen to Papa!
+      They love us so much near and far!
+      When they speak we listen well
+      That's the best way you can tell!
+      Mama Papa we love you!
+      We will always listen to you!
+
+      [Outro]
+      Mama and Papa work so hard each day
+      Max and Mia say thank you in every way!
+      Respecting our parents is the best thing to do!
+      Mama Papa we love love love you!
+
+  # ── 9. BITTE UND DANKE (Please & Thank You) ──────────────────────────────
+  - id: please-and-thank-you
+    title: "Please and Thank You — Good Manners with Max and Mia!"
+    caption: "Please and Thank You! Learn Good Manners with Max & Mia — Kids Values Song"
+    extra_tags: ["#manners", "#pleaseandthankyou", "#goodmanners", "#polite", "#values"]
+    visual_style: "bright cheerful home and playground settings showing polite interactions, warm colors"
+    suno_style: "polite cheerful children's song, good manners, bright and clear, upbeat educational"
+    music_style: "cheerful manners song bright and uplifting"
+    learn_element: "please, thank you, excuse me, sorry, you're welcome — the magic words"
+    interactive_questions:
+      - question: "What do you say when you want something?"
+        answer: "PLEASE! May I have it please?"
+        visual: "Max asking politely with hands clasped"
+      - question: "What do you say when someone helps you?"
+        answer: "THANK YOU! Thank you so much!"
+        visual: "Mia smiling and saying thank you"
+    lyrics: |
+      [Intro]
+      Max and Mia know the magic words!
+      The kindest words you have ever heard!
+
+      [Verse 1]
+      When Max wants a cookie from the jar
+      He says Mama please, he is a superstar!
+      He never grabs and never shouts
+      Polite and kind that's what it's about!
+
+      [Chorus]
+      Please and Thank You magic words!
+      The kindest words you have ever heard!
+      Please and Thank You every day
+      Makes the world a better way!
+
+      [Verse 2]
+      When Mia gets a gift she claps her hands
+      Thank you so much she understands!
+      She looks them in the eyes and smiles so bright
+      Saying thank you always feels so right!
+
+      [Chorus]
+      Please and Thank You magic words!
+      The kindest words you have ever heard!
+      Please and Thank You every day
+      Makes the world a better way!
+
+      [Bridge]
+      Max bumps into someone what does he say?
+      Excuse me, I'm sorry that is the polite way!
+      Mia makes a mistake and she says with care
+      I'm sorry because kindness should be everywhere!
+      Can you use the magic words today?
+      Please and Thank You hip hip hooray!
+
+      [Verse 3]
+      At school Max says please to his teacher kind
+      Mia shares her toys so generous and fine!
+      You're welcome she says when friends say thanks
+      Good manners deserve the biggest of thanks!
+
+      [Chorus]
+      Please and Thank You magic words!
+      The kindest words you have ever heard!
+      Please and Thank You every day
+      Makes the world a better way!
+
+      [Outro]
+      Max says remember PLEASE!
+      Mia says and THANK YOU pretty please!
+      Magic words make everyone smile!
+      Use them every single while!
+
+  # ── 10. HELFEN UND AUFRÄUMEN (Helping & Tidying) ─────────────────────────
+  - id: helping-and-sharing
+    title: "Helping and Sharing with Max and Mia!"
+    caption: "Max & Mia love to Help and Share! Kindness Song for Kids — Family Values"
+    extra_tags: ["#sharing", "#helping", "#kindness", "#teamwork", "#values", "#toddlers"]
+    visual_style: "warm family scenes, cleaning together, sharing food, teamwork at home, bright colors"
+    suno_style: "warm uplifting children's song, helping and sharing, teamwork, feel-good melody"
+    music_style: "warm uplifting helping song with cheerful melody"
+    learn_element: "helping parents, sharing with friends, teamwork, kindness in action"
+    interactive_questions:
+      - question: "How can you help Mama today?"
+        answer: "Clean up! Set the table! Give a hug!"
+        visual: "Max helping Mama with broom and big smile"
+      - question: "What do you do when a friend wants your toy?"
+        answer: "SHARE! Let them play too!"
+        visual: "Mia and friend playing with toy together happily"
+    lyrics: |
+      [Intro]
+      Max and Mia love to help each day!
+      Sharing and helping is the very best way!
+
+      [Verse 1]
+      Max sees Mama carrying bags so heavy
+      He runs right up he is already ready!
+      Let me help Mama I will carry that!
+      Mama smiles and says thank you for that!
+
+      [Chorus]
+      Help help help we love to help!
+      Share share share not just for yourself!
+      When we help and when we share
+      Everyone can see we care!
+
+      [Verse 2]
+      Mia has a cookie her friend has none
+      She breaks it in half now they both have some!
+      Sharing makes two children happy and bright
+      Sharing with your friends that's always right!
+
+      [Chorus]
+      Help help help we love to help!
+      Share share share not just for yourself!
+      When we help and when we share
+      Everyone can see we care!
+
+      [Bridge]
+      Max tidies up his room without being asked!
+      I did it he cheers he's up to the task!
+      Mia helps Papa wash the family car!
+      Helping our parents we're superstar!
+      Can you help someone today?
+      Can you share something hip hooray?
+
+      [Verse 3]
+      Together they clean and together they play
+      Working as a team makes the job feel okay!
+      Max sweeps the floor Mia picks up toys
+      Happy little helpers girl and boy!
+
+      [Chorus]
+      Help help help we love to help!
+      Share share share not just for yourself!
+      When we help and when we share
+      Everyone can see we care!
+
+      [Outro]
+      Max says help your family today!
+      Mia says share with your friends hurray!
+      Helping and sharing that's what we do!
+      Max and Mia we love you!
+
+  # ── 11. HUMPTY DUMPTY ────────────────────────────────────────────────────
+  - id: humpty-dumpty
+    title: "Humpty Dumpty — Max and Mia!"
+    caption: "Humpty Dumpty sat on a wall! Classic nursery rhyme with Max & Mia 🥚 Kids Song"
+    extra_tags: ["#humptydumpty", "#nurseryrhyme", "#classic", "#toddlers", "#kidssong"]
+    visual_style: "big round smiling egg character on a sunny stone wall, blue sky, green hills, castle far background"
+    suno_style: "classic nursery rhyme, gentle playful melody, children's sing-along, upbeat fun"
+    music_style: "classic nursery rhyme gentle and fun with egg-cracking sound effects"
+    learn_element: "classic rhyme, cause and effect, helping others, counting the kings horses"
+    interactive_questions:
+      - question: "Where did Humpty Dumpty sit?"
+        answer: "On a WALL! A big tall wall!"
+        visual: "Humpty Dumpty egg sitting on a stone wall, arrow pointing to wall"
+      - question: "How many horses do you see?"
+        answer: "Count! 1, 2, 3, 4 horses!"
+        visual: "four cartoon horses with numbers 1-4"
+    lyrics: |
+      [Intro]
+      Max and Mia have a friend today!
+      Round and funny he loves to play!
+
+      [Verse 1]
+      Humpty Dumpty sat on a wall
+      Humpty Dumpty had a great fall!
+      Max looked up with eyes so wide
+      Mia ran to Humpty's side!
+
+      [Chorus]
+      Humpty Dumpty wobble wobble woo!
+      Max and Mia love you!
+      Sitting on the wall so high
+      Round and happy — bye bye bye!
+
+      [Verse 2]
+      All the king's horses and all the king's men
+      Tried to put Humpty together again!
+      One two three four horses came near
+      Max and Mia gave a great big cheer!
+
+      [Chorus]
+      Humpty Dumpty wobble wobble woo!
+      Max and Mia love you!
+      Sitting on the wall so high
+      Round and happy — bye bye bye!
+
+      [Bridge]
+      Max asks: Can you count the horses?
+      Mia says: One! Two! Three! Four!
+      How many horses came to help?
+      Count with us — let's count some more!
+      Clip clop clip clop on the ground!
+      Four big horses come around!
+
+      [Verse 3]
+      Humpty smiled and laughed out loud
+      He is safe now — he is so proud!
+      Max and Mia hold his hand
+      Humpty Dumpty — the best in the land!
+
+      [Chorus]
+      Humpty Dumpty wobble wobble woo!
+      Max and Mia love you!
+      Sitting on the wall so high
+      Round and happy — bye bye bye!
+
+      [Outro]
+      Humpty Dumpty is safe today!
+      Max and Mia — hip hip hooray!
+      We learned to count from one to four!
+      Come back again and learn some more!
+
+  # ── 12. NATURE DISCOVERY — Max & Mia entdecken die Natur ─────────────────
+  - id: nature-discovery
+    title: "Max & Mia Discover Nature!"
+    caption: "Max & Mia explore the forest! 🍄🦋🐝 Mushrooms, butterflies, animals & more! Nature for toddlers"
+    extra_tags: ["#nature", "#forest", "#mushrooms", "#butterflies", "#outdoors", "#explore", "#animals"]
+    visual_style: "sunny forest and meadow, colorful wildflowers, giant mushrooms, butterflies, friendly animals, warm golden sunlight through trees, lush green nature"
+    suno_style: "adventurous children's exploration song, curious and wonder-filled, upbeat nature sounds, educational, playful and fun, sing along"
+    music_style: "wonder-filled outdoor adventure song with bird chirps and gentle forest sounds"
+    learn_element: "nature objects: mushroom, butterfly, bee, ladybug, bird, hedgehog, frog, squirrel; colors in nature; counting animals"
+    interactive_questions:
+      - question: "What color is this mushroom?"
+        answer: "RED with white dots! It's a toadstool!"
+        visual: "big red toadstool mushroom shown close up"
+      - question: "How many butterflies can you count?"
+        answer: "Count! 1, 2, 3 butterflies!"
+        visual: "three colorful butterflies shown with numbers"
+    lyrics: |
+      [Intro]
+      Max and Mia put their boots on today!
+      Into the forest — let's explore and play!
+
+      [Verse 1]
+      Look! A mushroom red and round!
+      Popping up right from the ground!
+      A little ladybug spots of black
+      One two three dots on her back!
+
+      [Chorus]
+      Out in nature, what do we see?
+      Butterflies and buzzing bees!
+      Flowers, mushrooms, birds that sing!
+      Nature shows us everything!
+
+      [Verse 2]
+      A butterfly with wings so bright
+      Yellow orange red and white!
+      Fluttering from flower to flower
+      In the sunny morning hour!
+
+      [Chorus]
+      Out in nature, what do we see?
+      Butterflies and buzzing bees!
+      Flowers, mushrooms, birds that sing!
+      Nature shows us everything!
+
+      [Bridge]
+      Max whispers: do you hear that sound?
+      A tiny hedgehog on the ground!
+      Mia asks: what color is that flower?
+      PINK! She counts each pretty petal power!
+      One! Two! Three! Four! Five!
+      Nature makes us feel alive!
+
+      [Verse 3]
+      A fuzzy bumblebee goes BUZZ!
+      It drinks the nectar — that is what it does!
+      A little frog sits on a stone
+      Ribbit ribbit — not alone!
+
+      [Verse 4]
+      Mia finds a baby bird nest
+      Three small eggs — nature's best!
+      Max spots a squirrel in the tree
+      Collecting nuts so carefully!
+
+      [Chorus]
+      Out in nature, what do we see?
+      Butterflies and buzzing bees!
+      Flowers, mushrooms, birds that sing!
+      Nature shows us everything!
+
+      [Outro]
+      Max says: nature is so amazing!
+      Mia says: every day worth exploring!
+      Mushrooms butterflies and bees!
+      Birds and frogs and tall green trees!
+      Come outside with Mia and me!
+      Nature's waiting — are you ready?

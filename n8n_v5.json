@@ -1,0 +1,258 @@
+{
+  "id": "maxmia-v5-pipeline",
+  "name": "Max & Mia — Nursery Rhyme Pipeline v5",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "theme",
+              "value": "Baa Baa Black Sheep",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "suno_api_key",
+              "value": "d8ccd0ed9c145a188336beaa9195475b",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-variables",
+      "name": "Set Variables",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lyrics-Template Generator — original lyrics, kein Copyright-Problem!\nconst theme = $input.first().json.theme;\nconst suno_api_key = $input.first().json.suno_api_key;\n\nconst templates = {\n  'Baa Baa Black Sheep': {\n    lyrics: `[Intro]\n(gentle glockenspiel melody)\n\n[Verse 1]\nWoolly sheep woolly sheep have you got some fleece?\nOh yes indeed give my shearing a piece!\nOne bag for teacher one bag for friend\nAnd one for the children playing round the bend!\n\n[Chorus]\nFluffy sheep fluffy sheep soft as a cloud!\nFluffy sheep fluffy sheep singing out loud!\n\n[Verse 2]\nWoolly sheep woolly sheep dancing in the sun\nYour fluffy white coat makes the children run!\nSpin the wool spin the wool round and around\nThe softest sweetest music in the town!\n\n[Chorus]\nFluffy sheep fluffy sheep soft as a cloud!\nFluffy sheep fluffy sheep singing out loud!\n\n[Outro]\n(gentle glockenspiel fade)`,\n    style: \"children's nursery rhyme, glockenspiel lead melody, xylophone, bouncy 3/4 waltz, toy piano, recorder flute, upbeat cheerful, 85 BPM\"\n  },\n\n  'Twinkle Twinkle Little Star': {\n    lyrics: `[Intro]\n(twinkling glockenspiel intro)\n\n[Verse 1]\nShimmer shimmer little light\nSparkle sparkling through the night!\nWay up high above the trees\nGlowing gentle in the breeze!\n\n[Chorus]\nShimmer shimmer little light\nHow you twinkle shining bright!\n\n[Verse 2]\nWhen the golden sun goes down\nAnd the moon wears its nightgown\nThere you are the first to glow\nPutting on your starlight show!\n\n[Chorus]\nShimmer shimmer little light\nHow you twinkle shining bright!\n\n[Bridge]\nStarlight starlight in the sky\nWinking as the clouds float by\nTill the morning paints the dawn\nYou will shine all night till gone!\n\n[Outro]\n(dreamy music box fade)`,\n    style: \"children's lullaby nursery rhyme, glockenspiel, music box, xylophone, dreamy waltz, soft toy piano, gentle and calm, 75 BPM\"\n  },\n\n  'Hickory Dickory Dock': {\n    lyrics: `[Intro]\n(tick tock clock rhythm)\n\n[Verse 1]\nTickety tockety on the clock\nA tiny mouse came as a shock!\nThe bell rang once — ding!\nThe mouse did spring!\nTickety tockety tick tock!\n\n[Chorus]\nTick tock tickety dock!\nTick tock tickety dock!\n\n[Verse 2]\nTickety tockety on the clock\nThe mouse came back around the block!\nThe bell rang twice — ding ding!\nDown the mouse did swing!\nTickety tockety tick tock!\n\n[Chorus]\nTick tock tickety dock!\nTick tock tickety dock!\n\n[Verse 3]\nTickety tockety on the clock\nThe mouse now dances round the dock!\nThe bell rings three — ding ding ding!\nEverybody sing!\nTickety tockety tick tock!\n\n[Outro]\n(clock chime fades away)`,\n    style: \"children's nursery rhyme, bouncy staccato glockenspiel, playful xylophone, ticking percussion, upbeat fun, 95 BPM\"\n  },\n\n  'Jack and Jill': {\n    lyrics: `[Intro]\n(bouncy hill-climbing melody)\n\n[Verse 1]\nMax and Mia climb the hill\nFetch a bucket at the well!\nMax trips over tumbles down\nMia follows with a frown!\n\n[Chorus]\nUp the hill up the hill!\nMax and Mia go!\nUp the hill up the hill!\nWith the bucket so!\n\n[Verse 2]\nMax got up and ran back home\nNo more on that hill to roam!\nMia laughed and skipped along\nSinging her own happy song!\n\n[Chorus]\nUp the hill up the hill!\nMax and Mia go!\nUp the hill up the hill!\nWith the bucket so!\n\n[Outro]\n(happy bouncy ending)`,\n    style: \"children's nursery rhyme, cheerful glockenspiel, bouncy folk rhythm, xylophone, accordion, upbeat playful, 90 BPM\"\n  },\n\n  'Mary Had a Little Lamb': {\n    lyrics: `[Intro]\n(gentle flute and glockenspiel)\n\n[Verse 1]\nMia has a fluffy lamb\nWhite as morning snow!\nEverywhere that Mia goes\nThe little lamb must go!\n\n[Chorus]\nLittle lamb little lamb\nFolowing Mia all day!\nLittle lamb little lamb\nAlways wants to play!\n\n[Verse 2]\nFollowed her to school one day\nMade the children cheer!\nMax and Mia and the lamb\nAll laughed year to year!\n\n[Chorus]\nLittle lamb little lamb\nFollowing Mia all day!\nLittle lamb little lamb\nAlways wants to play!\n\n[Outro]\n(sweet gentle fade)`,\n    style: \"children's nursery rhyme, gentle glockenspiel, flute melody, soft xylophone, warm and tender, 80 BPM\"\n  },\n\n  'Ring Around the Rosie': {\n    lyrics: `[Intro]\n(spinning circular melody)\n\n[Verse 1]\nCircle circle round we go\nHolding hands and spinning so!\nPetals flowers in our pockets\nSpinning round like little rockets!\n\n[Chorus]\nSpin around spin around!\nEverybody down!\nSpin around spin around!\nBest game in the town!\n\n[Verse 2]\nMax and Mia laugh and spin\nRound and round with giant grins!\nFlowers petals fill the air\nSinging dancing everywhere!\n\n[Chorus]\nSpin around spin around!\nEverybody down!\nSpin around spin around!\nBest game in the town!\n\n[Outro]\n(dizzy happy laughter ending)`,\n    style: \"children's nursery rhyme, circular spinning waltz, glockenspiel, xylophone, playful and dizzy fun, 88 BPM\"\n  },\n\n  'Little Miss Muffet': {\n    lyrics: `[Intro]\n(tiptoeing sneaky melody)\n\n[Verse 1]\nLittle Mia sitting down\nEating pudding in the town!\nAlong crept a hairy spider\nSitting right down beside her!\n\n[Chorus]\nOh no oh no!\nA spider came to say hello!\nOh no oh no!\nShe jumped up and away did go!\n\n[Verse 2]\nLittle Mia came back soon\nSpider gone by afternoon!\nShe ate her yummy pudding then\nAnd smiled her biggest smile again!\n\n[Chorus]\nHooray hooray!\nNo spider ruined her day!\nHooray hooray!\nShe laughed and sang and played!\n\n[Outro]\n(happy resolution ending)`,\n    style: \"children's nursery rhyme, sneaky playful glockenspiel, xylophone, pizzicato rhythm, spooky fun then happy, 85 BPM\"\n  },\n\n  'Humpty Dumpty': {\n    lyrics: `[Intro]\n(proud majestic fanfare)\n\n[Verse 1]\nRoundly Rumply on the wall\nRoundly Rumply had a fall!\nAll the horses all the men\nCouldn't fix poor Round again!\n\n[Chorus]\nRoundy Roundy on the wall!\nRoundy Roundy had a fall!\nAll the helpers all the friends\nCouldn't make him whole again!\n\n[Verse 2]\nRoundly Rumply was so proud\nBalancing and laughing loud!\nDanced a step too near the edge\nTumbled off the mossy ledge!\n\n[Chorus]\nRoundy Roundy on the wall!\nRoundy Roundy had a fall!\n\n[Outro]\n(sad but hopeful ending)`,\n    style: \"children's nursery rhyme waltz 3/4, bouncy folk swing, glockenspiel melody, xylophone, recorder flute, toy piano, upbeat 90 BPM\"\n  }\n};\n\nconst key = Object.keys(templates).find(k =>\n  k.toLowerCase() === theme.toLowerCase()\n) || 'Baa Baa Black Sheep';\n\nconst template = templates[key];\n\nreturn [{ json: {\n  lyrics: template.lyrics,\n  style: template.style,\n  theme: key,\n  suno_api_key: suno_api_key\n} }];"
+      },
+      "id": "lyrics-template",
+      "name": "Lyrics Template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apibox.erweima.ai/api/v1/generate",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.suno_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ JSON.stringify($json.lyrics) }},\n  \"style\": {{ JSON.stringify($json.style) }},\n  \"title\": {{ JSON.stringify($json.theme + ' - Max und Mia World') }},\n  \"customMode\": true,\n  \"instrumental\": false,\n  \"model\": \"V3_5\",\n  \"callBackUrl\": \"https://webhook.site/maxmia-placeholder\",\n  \"negativeTags\": \"heavy metal, rock, electric guitar, drums, dark, sad\"\n}",
+        "options": {}
+      },
+      "id": "suno-generate",
+      "name": "Suno — Generate Song",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nif (data.code !== 200) throw new Error('Suno Fehler: ' + data.msg);\nconst taskId = data?.data?.taskId || '';\nif (!taskId) throw new Error('Kein taskId: ' + JSON.stringify(data));\nreturn [{ json: {\n  taskId: taskId,\n  theme: $('Lyrics Template').item.json.theme,\n  suno_api_key: $('Lyrics Template').item.json.suno_api_key\n} }];"
+      },
+      "id": "save-task-id",
+      "name": "Save Task ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "amount": 90,
+        "unit": "seconds"
+      },
+      "id": "wait-suno",
+      "name": "Wait 90s for Suno",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://apibox.erweima.ai/api/v1/generate/record-info?taskId=' + $json.taskId }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.suno_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "suno-poll",
+      "name": "Suno — Poll Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nif (data.code !== 200) throw new Error('Poll Fehler: ' + data.msg);\nconst songs = data.data?.response?.sunoData || data.data?.sunoData || [];\nconst ready = songs.filter(s => s && (s.audioUrl || s.audio_url));\nif (ready.length === 0) {\n  const status = data.data?.status || 'unknown';\n  throw new Error('Song noch nicht fertig. Status: ' + status);\n}\nconst song = ready[0];\nreturn [{ json: {\n  audioUrl: song.audioUrl || song.audio_url,\n  title: song.title || $('Lyrics Template').item.json.theme,\n  theme: $('Lyrics Template').item.json.theme\n} }];"
+      },
+      "id": "extract-audio",
+      "name": "Extract Audio URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.audioUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "audio"
+            }
+          }
+        }
+      },
+      "id": "download-mp3",
+      "name": "Download MP3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ 'C:/Users/myshi/Documents/Claude/Projects/video-animation-kids/music/' + $('Extract Audio URL').item.json.theme.replace(/ /g,'_') + '_auto.mp3' }}",
+        "dataPropertyName": "audio"
+      },
+      "id": "save-mp3",
+      "name": "Save MP3",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8765/build-video",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"theme\": {{ JSON.stringify($('Extract Audio URL').item.json.theme) }},\n  \"music_path\": {{ JSON.stringify($('Save MP3').item.json.fileName) }}\n}",
+        "options": {}
+      },
+      "id": "build-video",
+      "name": "Build Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\nif (!result.success) throw new Error('Video-Build fehlgeschlagen: ' + JSON.stringify(result));\nreturn [{ json: {\n  videoPath: result.video_path,\n  theme: $('Extract Audio URL').item.json.theme\n} }];"
+      },
+      "id": "check-video",
+      "name": "Check Video Built",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8765/youtube-upload",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"video_path\": {{ JSON.stringify($json.videoPath) }},\n  \"title\": {{ JSON.stringify($json.theme + ' | Max und Mia World | Nursery Rhyme | Kinderlieder') }},\n  \"description\": \"Nursery Rhymes fuer Kinder! Max und Mia World\\n\\n#NurseryRhymes #KidsMusic #MaxMiaWorld #Kinderlieder\",\n  \"tags\": \"nursery rhyme,kids,children,Max und Mia,Kinderlieder,animation\"\n}",
+        "options": {}
+      },
+      "id": "youtube-upload",
+      "name": "YouTube Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const upload = $input.first().json;\nconst theme = $('Extract Audio URL').item.json.theme;\nreturn [{ json: {\n  success: true,\n  theme: theme,\n  videoId: upload.video_id || '',\n  youtubeUrl: upload.video_id ? 'https://youtube.com/watch?v=' + upload.video_id : 'Upload-Fehler pruefen',\n  message: 'Pipeline komplett fuer: ' + theme\n} }];"
+      },
+      "id": "final-response",
+      "name": "Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Set Variables", "type": "main", "index": 0 }]]
+    },
+    "Set Variables": {
+      "main": [[{ "node": "Lyrics Template", "type": "main", "index": 0 }]]
+    },
+    "Lyrics Template": {
+      "main": [[{ "node": "Suno — Generate Song", "type": "main", "index": 0 }]]
+    },
+    "Suno — Generate Song": {
+      "main": [[{ "node": "Save Task ID", "type": "main", "index": 0 }]]
+    },
+    "Save Task ID": {
+      "main": [[{ "node": "Wait 90s for Suno", "type": "main", "index": 0 }]]
+    },
+    "Wait 90s for Suno": {
+      "main": [[{ "node": "Suno — Poll Status", "type": "main", "index": 0 }]]
+    },
+    "Suno — Poll Status": {
+      "main": [[{ "node": "Extract Audio URL", "type": "main", "index": 0 }]]
+    },
+    "Extract Audio URL": {
+      "main": [[{ "node": "Download MP3", "type": "main", "index": 0 }]]
+    },
+    "Download MP3": {
+      "main": [[{ "node": "Save MP3", "type": "main", "index": 0 }]]
+    },
+    "Save MP3": {
+      "main": [[{ "node": "Build Video", "type": "main", "index": 0 }]]
+    },
+    "Build Video": {
+      "main": [[{ "node": "Check Video Built", "type": "main", "index": 0 }]]
+    },
+    "Check Video Built": {
+      "main": [[{ "node": "YouTube Upload", "type": "main", "index": 0 }]]
+    },
+    "YouTube Upload": {
+      "main": [[{ "node": "Final Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "MaxMiaWorld" }]
+}

@@ -1,0 +1,3 @@
+file 'C:\Users\myshi\Documents\Claude\Projects\video-animation-kids\music\Humpty Great Fall.mp3'
+file 'C:\Users\myshi\Documents\Claude\Projects\video-animation-kids\music\Humpty Great Fall (1).mp3'
+file 'C:\Users\myshi\Documents\Claude\Projects\video-animation-kids\music\Humpy Dumpty Hop (1).mp3'

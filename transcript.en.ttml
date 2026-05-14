@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" ttp:profile="http://www.w3.org/TR/profile/sdp-us" >
+<head>
+<styling>
+<style xml:id="s1" tts:textAlign="center" tts:extent="90% 90%" tts:origin="5% 5%" tts:displayAlign="after"/>
+<style xml:id="s2" tts:fontSize=".72c" tts:backgroundColor="black" tts:color="white"/>
+</styling>
+<layout>
+<region xml:id="r1" style="s1"/>
+</layout>
+</head>
+<body region="r1">
+<div>
+<p begin="00:00:00.080" end="00:00:06.400" style="s2">The sun [music] is shining, the sky so</p>
+<p begin="00:00:02.879" end="00:00:09.440" style="s2">blue. All aboard, the morning&#39;s calling</p>
+<p begin="00:00:06.400" end="00:00:12.480" style="s2">you. Chug chug [music] choo choo. It&#39;s a</p>
+<p begin="00:00:09.440" end="00:00:15.120" style="s2">brand new day. Rise and shine, let&#39;s</p>
+<p begin="00:00:12.480" end="00:00:18.080" style="s2">laugh and play. [music]</p>
+<p begin="00:00:15.120" end="00:00:22.480" style="s2">Choo choo. Hip hip hooray. All aboard</p>
+<p begin="00:00:18.080" end="00:00:24.400" style="s2">the good morning train.</p>
+<p begin="00:00:22.480" end="00:00:28.400" style="s2">The kids music video you just watched</p>
+<p begin="00:00:24.400" end="00:00:31.760" style="s2">was created using Nano Banana VO3.1 and</p>
+<p begin="00:00:28.400" end="00:00:34.060" style="s2">Sunno AI. Three gamechanging AI tools</p>
+<p begin="00:00:31.760" end="00:00:34.880" style="s2">that when combined become an unstoppable</p>
+<p begin="00:00:34.060" end="00:00:37.440" style="s2">[snorts]</p>
+<p begin="00:00:34.880" end="00:00:39.440" style="s2">creative powerhouse. In this video, I&#39;ll</p>
+<p begin="00:00:37.440" end="00:00:41.520" style="s2">show you exactly how to use their full</p>
+<p begin="00:00:39.440" end="00:00:43.600" style="s2">power and make your own masterpiece from</p>
+<p begin="00:00:41.520" end="00:00:45.920" style="s2">start to finish. But you might be</p>
+<p begin="00:00:43.600" end="00:00:48.559" style="s2">wondering, why should I even bother</p>
+<p begin="00:00:45.920" end="00:00:50.879" style="s2">making these kinds of videos? I um well,</p>
+<p begin="00:00:48.559" end="00:00:52.879" style="s2">here&#39;s the thing. Kids educational music</p>
+<p begin="00:00:50.879" end="00:00:54.640" style="s2">channels aren&#39;t just about entertaining</p>
+<p begin="00:00:52.879" end="00:00:56.719" style="s2">children. They&#39;re actually a gold mine</p>
+<p begin="00:00:54.640" end="00:00:58.719" style="s2">for making money. Let me show you what I</p>
+<p begin="00:00:56.719" end="00:01:01.840" style="s2">mean. Take a look at a channel called</p>
+<p begin="00:00:58.719" end="00:01:04.640" style="s2">Laafun Nursery Rhymes. One of their</p>
+<p begin="00:01:01.840" end="00:01:06.880" style="s2">videos has over 937</p>
+<p begin="00:01:04.640" end="00:01:10.080" style="s2">million views and the channel has 11</p>
+<p begin="00:01:06.880" end="00:01:13.119" style="s2">million subscribers. All they do is post</p>
+<p begin="00:01:10.080" end="00:01:15.600" style="s2">nursery rhymes and it&#39;s paying off big</p>
+<p begin="00:01:13.119" end="00:01:17.945" style="s2">time. According to SocialBlade, they</p>
+<p begin="00:01:15.600" end="00:01:18.479" style="s2">make over $790,000</p>
+<p begin="00:01:17.945" end="00:01:20.799" style="s2">[music]</p>
+<p begin="00:01:18.479" end="00:01:22.799" style="s2">every month. And that&#39;s not all. There&#39;s</p>
+<p begin="00:01:20.799" end="00:01:25.040" style="s2">also Choo Choo TV, one of the biggest</p>
+<p begin="00:01:22.799" end="00:01:26.640" style="s2">names in kids content. Some of their</p>
+<p begin="00:01:25.040" end="00:01:28.720" style="s2">educational songs and rhymes have</p>
+<p begin="00:01:26.640" end="00:01:31.040" style="s2">crossed 6 billion [music] views. Their</p>
+<p begin="00:01:28.720" end="00:01:33.840" style="s2">estimated monthly income over $1</p>
+<p begin="00:01:31.040" end="00:01:36.159" style="s2">million. Crazy, right? Now, here&#39;s the</p>
+<p begin="00:01:33.840" end="00:01:38.320" style="s2">exciting part. You can do this, too. In</p>
+<p begin="00:01:36.159" end="00:01:40.560" style="s2">this video, we&#39;ll be cloning their exact</p>
+<p begin="00:01:38.320" end="00:01:45.119" style="s2">video strategy using the power of Sunno</p>
+<p begin="00:01:40.560" end="00:01:47.439" style="s2">Aai Nano Banana and VO 3.1 to make our</p>
+<p begin="00:01:45.119" end="00:01:49.200" style="s2">videos even more creative, highquality,</p>
+<p begin="00:01:47.439" end="00:01:51.360" style="s2">and ready to compete with the biggest</p>
+<p begin="00:01:49.200" end="00:01:53.280" style="s2">kids channels on YouTube. And as a</p>
+<p begin="00:01:51.360" end="00:01:55.600" style="s2">bonus, if you&#39;re serious about starting</p>
+<p begin="00:01:53.280" end="00:01:57.840" style="s2">your own kids channel, I&#39;ll show you how</p>
+<p begin="00:01:55.600" end="00:02:00.240" style="s2">to set up your YouTube channel the right</p>
+<p begin="00:01:57.840" end="00:02:01.759" style="s2">way for this niche. By the end of this</p>
+<p begin="00:02:00.240" end="00:02:03.840" style="s2">video, you&#39;ll have everything you need</p>
+<p begin="00:02:01.759" end="00:02:05.520" style="s2">to launch your very own successful</p>
+<p begin="00:02:03.840" end="00:02:07.840" style="s2">children&#39;s nursery rhyme YouTube</p>
+<p begin="00:02:05.520" end="00:02:10.319" style="s2">channel, all powered by Design&#39;s amazing</p>
+<p begin="00:02:07.840" end="00:02:12.800" style="s2">AI tools. So, grab your notepad [music]</p>
+<p begin="00:02:10.319" end="00:02:14.879" style="s2">and let&#39;s dive right in. Step one,</p>
+<p begin="00:02:12.800" end="00:02:16.800" style="s2">setting up your YouTube channel. Let&#39;s</p>
+<p begin="00:02:14.879" end="00:02:18.800" style="s2">start with the bonus, creating your</p>
+<p begin="00:02:16.800" end="00:02:21.200" style="s2">YouTube channel. If you already have</p>
+<p begin="00:02:18.800" end="00:02:22.959" style="s2">one, you can skip this part, but I still</p>
+<p begin="00:02:21.200" end="00:02:25.440" style="s2">recommend watching. [music] You might</p>
+<p begin="00:02:22.959" end="00:02:28.160" style="s2">pick up a few tips. First, make sure you</p>
+<p begin="00:02:25.440" end="00:02:30.400" style="s2">have a Gmail account. New or old, both</p>
+<p begin="00:02:28.160" end="00:02:32.640" style="s2">work fine. [music] Go to youtube.com,</p>
+<p begin="00:02:30.400" end="00:02:34.879" style="s2">sign in, click your profile picture in</p>
+<p begin="00:02:32.640" end="00:02:36.000" style="s2">the top right corner, and select create</p>
+<p begin="00:02:34.879" end="00:02:38.319" style="s2">a channel. [music]</p>
+<p begin="00:02:36.000" end="00:02:40.800" style="s2">If you already have a name, great. But</p>
+<p begin="00:02:38.319" end="00:02:42.959" style="s2">if not, use Deepseek AI to help you</p>
+<p begin="00:02:40.800" end="00:02:44.720" style="s2">brainstorm creative channel name ideas</p>
+<p begin="00:02:42.959" end="00:02:47.599" style="s2">for nursery rhymes and kids [music]</p>
+<p begin="00:02:44.720" end="00:02:50.000" style="s2">songs. After signing up, paste in a</p>
+<p begin="00:02:47.599" end="00:02:53.120" style="s2">prompt asking it to come up with YouTube</p>
+<p begin="00:02:50.000" end="00:02:55.280" style="s2">channel name ideas. Turn on [music] deep</p>
+<p begin="00:02:53.120" end="00:02:57.280" style="s2">thinking mode for better results. Pick</p>
+<p begin="00:02:55.280" end="00:02:59.760" style="s2">your favorite name and head back to</p>
+<p begin="00:02:57.280" end="00:03:02.560" style="s2">YouTube.</p>
+<p begin="00:02:59.760" end="00:03:04.800" style="s2">Paste it in. Click create channel. And</p>
+<p begin="00:03:02.560" end="00:03:07.519" style="s2">that&#39;s it. Your new YouTube channel is</p>
+<p begin="00:03:04.800" end="00:03:10.000" style="s2">live and ready to go.</p>
+<p begin="00:03:07.519" end="00:03:12.080" style="s2">Channel description. Uploading your</p>
+<p begin="00:03:10.000" end="00:03:14.640" style="s2">videos is just the [music] start. You</p>
+<p begin="00:03:12.080" end="00:03:16.879" style="s2">also need a strong SEOfriendly channel</p>
+<p begin="00:03:14.640" end="00:03:19.920" style="s2">description so parents can easily find</p>
+<p begin="00:03:16.879" end="00:03:22.480" style="s2">your content. Go back to Deep Seek and</p>
+<p begin="00:03:19.920" end="00:03:25.360" style="s2">paste in the channel description prompt.</p>
+<p begin="00:03:22.480" end="00:03:27.440" style="s2">It will generate a short keywordrich</p>
+<p begin="00:03:25.360" end="00:03:30.319" style="s2">description using your channel name and</p>
+<p begin="00:03:27.440" end="00:03:32.877" style="s2">popular kids search terms. Copy the</p>
+<p begin="00:03:30.319" end="00:03:35.440" style="s2">result. Return to your YouTube studio.</p>
+<p begin="00:03:32.877" end="00:03:37.920" style="s2">[music] Click customize channel. Paste</p>
+<p begin="00:03:35.440" end="00:03:41.200" style="s2">it into the description box and hit</p>
+<p begin="00:03:37.920" end="00:03:43.519" style="s2">publish. That&#39;s it. Your channel is now</p>
+<p begin="00:03:41.200" end="00:03:46.720" style="s2">easier for parents to discover.</p>
+<p begin="00:03:43.519" end="00:03:48.640" style="s2">Designing a professional logo. Your logo</p>
+<p begin="00:03:46.720" end="00:03:50.480" style="s2">is the first thing people notice on your</p>
+<p begin="00:03:48.640" end="00:03:52.720" style="s2">channel that makes you look professional</p>
+<p begin="00:03:50.480" end="00:03:55.519" style="s2">and helps attract more subscribers.</p>
+<p begin="00:03:52.720" end="00:03:57.680" style="s2">Start by going to Deepseek AI and paste</p>
+<p begin="00:03:55.519" end="00:03:59.760" style="s2">in a prompt asking it to suggest logo</p>
+<p begin="00:03:57.680" end="00:04:01.360" style="s2">ideas that fit your channel&#39;s theme.</p>
+<p begin="00:03:59.760" end="00:04:02.799" style="s2">Once you&#39;ve got some ideas you like,</p>
+<p begin="00:04:01.360" end="00:04:05.760" style="s2">it&#39;s time to turn them into real</p>
+<p begin="00:04:02.799" end="00:04:07.200" style="s2">designs. Head over to Rendar AI link in</p>
+<p begin="00:04:05.760" end="00:04:09.920" style="s2">the description and create a free</p>
+<p begin="00:04:07.200" end="00:04:12.000" style="s2">account. Click create.</p>
+<p begin="00:04:09.920" end="00:04:14.319" style="s2">Then paste your logo idea into the</p>
+<p begin="00:04:12.000" end="00:04:17.359" style="s2">prompt box. [music] Select Fluxdev as</p>
+<p begin="00:04:14.319" end="00:04:20.320" style="s2">the model. Set the aspect ratio to 1 one</p>
+<p begin="00:04:17.359" end="00:04:23.040" style="s2">and choose 3D model for a polished look.</p>
+<p begin="00:04:20.320" end="00:04:24.560" style="s2">Click generate images and Rendar AI will</p>
+<p begin="00:04:23.040" end="00:04:26.400" style="s2">give you several professional logo</p>
+<p begin="00:04:24.560" end="00:04:28.479" style="s2">options. Pick your favorite, download</p>
+<p begin="00:04:26.400" end="00:04:30.720" style="s2">it, go back to your YouTube channel,</p>
+<p begin="00:04:28.479" end="00:04:34.759" style="s2">click customize channel, upload your</p>
+<p begin="00:04:30.720" end="00:04:34.759" style="s2">logo, and click save.</p>
+<p begin="00:04:35.280" end="00:04:39.759" style="s2">Done. Your channel now looks polished,</p>
+<p begin="00:04:37.919" end="00:04:42.320" style="s2">professional, and ready to win over</p>
+<p begin="00:04:39.759" end="00:04:44.320" style="s2">viewers. Next, creating a YouTube</p>
+<p begin="00:04:42.320" end="00:04:46.080" style="s2">banner. Now that your logo is ready,</p>
+<p begin="00:04:44.320" end="00:04:48.080" style="s2">let&#39;s design your channel banner. You</p>
+<p begin="00:04:46.080" end="00:04:50.080" style="s2">know, the large image at the top of your</p>
+<p begin="00:04:48.080" end="00:04:52.160" style="s2">YouTube page that gives your channel a</p>
+<p begin="00:04:50.080" end="00:04:54.000" style="s2">professional, welcoming look. We&#39;ll be</p>
+<p begin="00:04:52.160" end="00:04:57.360" style="s2">using a powerful tool called [music]</p>
+<p begin="00:04:54.000" end="00:04:59.759" style="s2">Design AI for this. Here&#39;s how to do it.</p>
+<p begin="00:04:57.360" end="00:05:02.000" style="s2">Start by visiting Design AI. You&#39;ll find</p>
+<p begin="00:04:59.759" end="00:05:03.759" style="s2">the link in the video description. If</p>
+<p begin="00:05:02.000" end="00:05:06.160" style="s2">you&#39;re new to the platform, go ahead and</p>
+<p begin="00:05:03.759" end="00:05:07.759" style="s2">create a free account. It only takes a</p>
+<p begin="00:05:06.160" end="00:05:10.160" style="s2">minute, and once you&#39;re signed in,</p>
+<p begin="00:05:07.759" end="00:05:12.160" style="s2">you&#39;re ready to start creating. On the</p>
+<p begin="00:05:10.160" end="00:05:14.160" style="s2">homepage, you&#39;ll see a section called</p>
+<p begin="00:05:12.160" end="00:05:16.240" style="s2">recent tasks showing your [music] latest</p>
+<p begin="00:05:14.160" end="00:05:19.039" style="s2">projects. Scroll down a little and</p>
+<p begin="00:05:16.240" end="00:05:20.960" style="s2">you&#39;ll find popular tools. This includes</p>
+<p begin="00:05:19.039" end="00:05:24.000" style="s2">options like image to [music] image,</p>
+<p begin="00:05:20.960" end="00:05:25.919" style="s2">text to image, image to video, and more.</p>
+<p begin="00:05:24.000" end="00:05:28.400" style="s2">Select text to [music] image. You&#39;ll now</p>
+<p begin="00:05:25.919" end="00:05:30.320" style="s2">see a clean, beginnerfriendly workspace</p>
+<p begin="00:05:28.400" end="00:05:33.600" style="s2">where you can start bringing your ideas</p>
+<p begin="00:05:30.320" end="00:05:36.160" style="s2">to life. Next, head back to DeepSeek and</p>
+<p begin="00:05:33.600" end="00:05:38.639" style="s2">paste in a prompt asking it to write a</p>
+<p begin="00:05:36.160" end="00:05:39.680" style="s2">banner idea that matches your channel&#39;s</p>
+<p begin="00:05:38.639" end="00:05:42.960" style="s2">theme.</p>
+<p begin="00:05:39.680" end="00:05:45.120" style="s2">Copy that idea and return to design AI.</p>
+<p begin="00:05:42.960" end="00:05:48.800" style="s2">Paste the prompt into the box. Choose</p>
+<p begin="00:05:45.120" end="00:05:52.479" style="s2">nano banana as the model</p>
+<p begin="00:05:48.800" end="00:05:54.560" style="s2">and set the aspect ratio to 16 to9.</p>
+<p begin="00:05:52.479" end="00:05:57.039" style="s2">Perfect for YouTube banners. [music]</p>
+<p begin="00:05:54.560" end="00:05:58.720" style="s2">Click generate images and wait a few</p>
+<p begin="00:05:57.039" end="00:06:01.520" style="s2">seconds while design creates your</p>
+<p begin="00:05:58.720" end="00:06:03.840" style="s2">designs. Pick your favorite version or</p>
+<p begin="00:06:01.520" end="00:06:05.840" style="s2">rerun the prompt if you want a new look.</p>
+<p begin="00:06:03.840" end="00:06:08.400" style="s2">Then download your banner and go back to</p>
+<p begin="00:06:05.840" end="00:06:10.319" style="s2">your YouTube studio. Click customize</p>
+<p begin="00:06:08.400" end="00:06:12.160" style="s2">channel. Upload your new banner and</p>
+<p begin="00:06:10.319" end="00:06:16.440" style="s2">check how it looks on your page. If it</p>
+<p begin="00:06:12.160" end="00:06:16.440" style="s2">looks good, click publish.</p>
+<p begin="00:06:16.560" end="00:06:21.360" style="s2">And you&#39;re done. D. Your channel now has</p>
+<p begin="00:06:19.360" end="00:06:23.179" style="s2">both a professional logo and an</p>
+<p begin="00:06:21.360" end="00:06:26.800" style="s2">attractive banner that catches people&#39;s</p>
+<p begin="00:06:23.179" end="00:06:29.680" style="s2">[music] attention. Next, add SEO keyword</p>
+<p begin="00:06:26.800" end="00:06:31.680" style="s2">tags. The final setup step is adding SEO</p>
+<p begin="00:06:29.680" end="00:06:33.360" style="s2">keyword tags. These help YouTube</p>
+<p begin="00:06:31.680" end="00:06:35.600" style="s2">understand your channel and show it to</p>
+<p begin="00:06:33.360" end="00:06:37.360" style="s2">the right audience. Go back to Deepseek</p>
+<p begin="00:06:35.600" end="00:06:39.759" style="s2">and paste in a prompt. asking [music] it</p>
+<p begin="00:06:37.360" end="00:06:42.080" style="s2">to create keyword tags related to your</p>
+<p begin="00:06:39.759" end="00:06:44.139" style="s2">channel&#39;s theme. Once you get the list,</p>
+<p begin="00:06:42.080" end="00:06:47.520" style="s2">copy it and head to your YouTube studio.</p>
+<p begin="00:06:44.139" end="00:06:49.600" style="s2">[music] Click customize channel settings</p>
+<p begin="00:06:47.520" end="00:06:51.840" style="s2">channel. Scroll to keywords and paste</p>
+<p begin="00:06:49.600" end="00:06:53.520" style="s2">your tags there. When you&#39;re done, hit</p>
+<p begin="00:06:51.840" end="00:06:55.759" style="s2">save. And that&#39;s [music] it. Your</p>
+<p begin="00:06:53.520" end="00:06:58.080" style="s2">channel is now fully optimized and ready</p>
+<p begin="00:06:55.759" end="00:06:59.759" style="s2">to grow. Before we jump into making your</p>
+<p begin="00:06:58.080" end="00:07:02.479" style="s2">kids videos, [music] do me a quick</p>
+<p begin="00:06:59.759" end="00:07:04.319" style="s2">favor. Like this video, subscribe, and</p>
+<p begin="00:07:02.479" end="00:07:06.720" style="s2">turn on the bell so you don&#39;t miss the</p>
+<p begin="00:07:04.319" end="00:07:09.520" style="s2">next steps. All right, let&#39;s keep going.</p>
+<p begin="00:07:06.720" end="00:07:12.240" style="s2">Step two, come up with a song idea and</p>
+<p begin="00:07:09.520" end="00:07:14.560" style="s2">lyrics. Now, the first step in creating</p>
+<p begin="00:07:12.240" end="00:07:16.639" style="s2">viral nursery rhyme content, the</p>
+<p begin="00:07:14.560" end="00:07:19.280" style="s2">foundation of everything, is coming up</p>
+<p begin="00:07:16.639" end="00:07:21.475" style="s2">with a catchy song idea and writing</p>
+<p begin="00:07:19.280" end="00:07:23.280" style="s2">lyrics that can capture young minds.</p>
+<p begin="00:07:21.475" end="00:07:25.520" style="s2">[music] Writing lyrics from scratch can</p>
+<p begin="00:07:23.280" end="00:07:27.840" style="s2">be tough. But don&#39;t worry, I&#39;ve made it</p>
+<p begin="00:07:25.520" end="00:07:30.639" style="s2">super easy for you. I&#39;m sharing the</p>
+<p begin="00:07:27.840" end="00:07:33.440" style="s2">exact a I prompts I used in this video</p>
+<p begin="00:07:30.639" end="00:07:35.520" style="s2">completely free. You can find them in my</p>
+<p begin="00:07:33.440" end="00:07:37.360" style="s2">Telegram community and the link is right</p>
+<p begin="00:07:35.520" end="00:07:38.960" style="s2">there in the description below. In the</p>
+<p begin="00:07:37.360" end="00:07:41.039" style="s2">shared Google document, you&#39;ll see the</p>
+<p begin="00:07:38.960" end="00:07:43.599" style="s2">prompt I use for generating song ideas</p>
+<p begin="00:07:41.039" end="00:07:45.280" style="s2">and lyrics. Here&#39;s what to do. Copy the</p>
+<p begin="00:07:43.599" end="00:07:48.240" style="s2">first prompt and [music] paste it into</p>
+<p begin="00:07:45.280" end="00:07:50.560" style="s2">DeepSeek. Hit enter, and Deepseek will</p>
+<p begin="00:07:48.240" end="00:07:53.120" style="s2">give you 10 different kids song ideas.</p>
+<p begin="00:07:50.560" end="00:07:54.560" style="s2">Pick the one you like best. Next, go</p>
+<p begin="00:07:53.120" end="00:07:57.199" style="s2">back to the resource document [music]</p>
+<p begin="00:07:54.560" end="00:07:59.759" style="s2">and copy the next prompt. Paste it into</p>
+<p begin="00:07:57.199" end="00:08:02.000" style="s2">Deepseek, but this time replace the part</p>
+<p begin="00:07:59.759" end="00:08:05.639" style="s2">in brackets with the number of the song</p>
+<p begin="00:08:02.000" end="00:08:05.639" style="s2">ID you selected.</p>
+<p begin="00:08:05.759" end="00:08:10.319" style="s2">Press enter and Deepseek will instantly</p>
+<p begin="00:08:08.319" end="00:08:12.000" style="s2">create the full lyrics for your song.</p>
+<p begin="00:08:10.319" end="00:08:13.919" style="s2">And just like that, you&#39;ve got your</p>
+<p begin="00:08:12.000" end="00:08:16.879" style="s2">first original nursery rhyme ready to</p>
+<p begin="00:08:13.919" end="00:08:19.199" style="s2">move to the next stage. Step three,</p>
+<p begin="00:08:16.879" end="00:08:20.800" style="s2">turning your lyrics into music. Now that</p>
+<p begin="00:08:19.199" end="00:08:23.039" style="s2">your lyrics are ready, it&#39;s time to</p>
+<p begin="00:08:20.800" end="00:08:26.000" style="s2">bring them to life by turning them into</p>
+<p begin="00:08:23.039" end="00:08:28.800" style="s2">a fun, catchy song that kids will love</p>
+<p begin="00:08:26.000" end="00:08:30.800" style="s2">to sing along to. To get started, head</p>
+<p begin="00:08:28.800" end="00:08:33.360" style="s2">over [music] to Suno AI and create a</p>
+<p begin="00:08:30.800" end="00:08:35.760" style="s2">free account. Don&#39;t worry, the platform</p>
+<p begin="00:08:33.360" end="00:08:37.440" style="s2">is super beginnerfriendly, so even if</p>
+<p begin="00:08:35.760" end="00:08:39.440" style="s2">this is your first time using it, you&#39;ll</p>
+<p begin="00:08:37.440" end="00:08:41.200" style="s2">find your way around easily. Once you&#39;re</p>
+<p begin="00:08:39.440" end="00:08:44.080" style="s2">logged in, you&#39;ll land on the main</p>
+<p begin="00:08:41.200" end="00:08:45.920" style="s2">dashboard. Click on create, and a new</p>
+<p begin="00:08:44.080" end="00:08:48.800" style="s2">interface will open up where the magic</p>
+<p begin="00:08:45.920" end="00:08:50.880" style="s2">begins. Next, go back to DeepSseek, copy</p>
+<p begin="00:08:48.800" end="00:08:53.040" style="s2">the lyrics you generated earlier, and</p>
+<p begin="00:08:50.880" end="00:08:55.600" style="s2">paste them into Sunno&#39;s lyrics prompt</p>
+<p begin="00:08:53.040" end="00:08:58.080" style="s2">box. Below that, you&#39;ll see a section</p>
+<p begin="00:08:55.600" end="00:09:00.240" style="s2">for style. This is where you tell Sunno</p>
+<p begin="00:08:58.080" end="00:09:03.040" style="s2">what kind of song you want. For our</p>
+<p begin="00:09:00.240" end="00:09:05.839" style="s2">project, simply type children&#39;s nursery</p>
+<p begin="00:09:03.040" end="00:09:08.080" style="s2">rhymes, playful, fun, and sing along.</p>
+<p begin="00:09:05.839" end="00:09:12.839" style="s2">Then, choose your vocal gender, type in</p>
+<p begin="00:09:08.080" end="00:09:12.839" style="s2">your song title, and hit [music] create.</p>
+<p begin="00:09:13.519" end="00:09:17.440" style="s2">In just a few moments, Suno will process</p>
+<p begin="00:09:15.680" end="00:09:19.839" style="s2">your lyrics and generate two different</p>
+<p begin="00:09:17.440" end="00:09:21.920" style="s2">versions of your song. Listen to both,</p>
+<p begin="00:09:19.839" end="00:09:23.279" style="s2">compare them, and download the one you</p>
+<p begin="00:09:21.920" end="00:09:26.279" style="s2">like best.</p>
+<p begin="00:09:23.279" end="00:09:26.279" style="s2">&gt;&gt; INFRRETCH.</p>
+<p begin="00:09:29.856" end="00:09:31.876" style="s2">[music]</p>
+<p begin="00:09:37.061" end="00:09:39.081" style="s2">[music]</p>
+<p begin="00:09:40.800" end="00:09:44.080" style="s2">The quality is so good you might even</p>
+<p begin="00:09:42.560" end="00:09:46.480" style="s2">have a hard time choosing. And that&#39;s</p>
+<p begin="00:09:44.080" end="00:09:48.800" style="s2">it. You now have a complete kids song</p>
+<p begin="00:09:46.480" end="00:09:51.200" style="s2">with vocals, instruments, rhythm, and</p>
+<p begin="00:09:48.800" end="00:09:53.120" style="s2">everything. All without stepping into a</p>
+<p begin="00:09:51.200" end="00:09:55.360" style="s2">studio. [music] Step four, generating</p>
+<p begin="00:09:53.120" end="00:09:57.680" style="s2">the images. Now that your song is ready,</p>
+<p begin="00:09:55.360" end="00:09:59.600" style="s2">it&#39;s time to bring it to life visually.</p>
+<p begin="00:09:57.680" end="00:10:01.200" style="s2">In this step, we&#39;ll create images that</p>
+<p begin="00:09:59.600" end="00:10:03.040" style="s2">match the [music] chorus and verses of</p>
+<p begin="00:10:01.200" end="00:10:05.360" style="s2">your song, turning your lyrics into</p>
+<p begin="00:10:03.040" end="00:10:08.480" style="s2">colorful, storydriven scenes kids will</p>
+<p begin="00:10:05.360" end="00:10:10.560" style="s2">love. We&#39;ll be using Design AI for this.</p>
+<p begin="00:10:08.480" end="00:10:13.519" style="s2">Here&#39;s how to do it. On the homepage,</p>
+<p begin="00:10:10.560" end="00:10:16.000" style="s2">select text to image IEX. Go to the</p>
+<p begin="00:10:13.519" end="00:10:17.760" style="s2">resource document link in the video</p>
+<p begin="00:10:16.000" end="00:10:20.240" style="s2">description and copy the image</p>
+<p begin="00:10:17.760" end="00:10:22.560" style="s2">generation prompts provided there. Paste</p>
+<p begin="00:10:20.240" end="00:10:24.640" style="s2">the prompt into DeepSeek and in seconds</p>
+<p begin="00:10:22.560" end="00:10:26.959" style="s2">it&#39;ll generate detailed image prompts</p>
+<p begin="00:10:24.640" end="00:10:29.440" style="s2">for each part of your song, the chorus</p>
+<p begin="00:10:26.959" end="00:10:31.519" style="s2">and every verse. Once you&#39;ve got your</p>
+<p begin="00:10:29.440" end="00:10:34.560" style="s2">prompts, copy the first image scene</p>
+<p begin="00:10:31.519" end="00:10:37.440" style="s2">prompt. Go back to design AI. Paste the</p>
+<p begin="00:10:34.560" end="00:10:40.000" style="s2">prompt into the prompt box. For the</p>
+<p begin="00:10:37.440" end="00:10:43.040" style="s2">model, select nano banana. For aspect</p>
+<p begin="00:10:40.000" end="00:10:46.160" style="s2">ratio, choose 16 to9, the perfect size</p>
+<p begin="00:10:43.040" end="00:10:48.640" style="s2">for YouTube videos. Click generate. In</p>
+<p begin="00:10:46.160" end="00:10:50.320" style="s2">just a few seconds, design a I will</p>
+<p begin="00:10:48.640" end="00:10:52.240" style="s2">create beautiful images from your</p>
+<p begin="00:10:50.320" end="00:10:54.800" style="s2">prompt. If you&#39;re not satisfied with the</p>
+<p begin="00:10:52.240" end="00:10:56.880" style="s2">result, simply click rerun to try again</p>
+<p begin="00:10:54.800" end="00:10:58.560" style="s2">until you get the perfect one. Once</p>
+<p begin="00:10:56.880" end="00:11:00.720" style="s2">you&#39;re happy with it, download your</p>
+<p begin="00:10:58.560" end="00:11:02.560" style="s2">image in your preferred file format.</p>
+<p begin="00:11:00.720" end="00:11:04.640" style="s2">Then repeat the same steps for your</p>
+<p begin="00:11:02.560" end="00:11:05.360" style="s2">second, third, and remaining image scene</p>
+<p begin="00:11:04.640" end="00:11:07.040" style="s2">prompts. [music]</p>
+<p begin="00:11:05.360" end="00:11:09.120" style="s2">By the end, you&#39;ll have a full set of</p>
+<p begin="00:11:07.040" end="00:11:11.040" style="s2">visuals ready. Each image matching your</p>
+<p begin="00:11:09.120" end="00:11:13.920" style="s2">song lyrics and building your nursery</p>
+<p begin="00:11:11.040" end="00:11:16.160" style="s2">rhyme video scene by scene. Step five,</p>
+<p begin="00:11:13.920" end="00:11:18.399" style="s2">turning our generated images into a</p>
+<p begin="00:11:16.160" end="00:11:20.000" style="s2">video. All right, now that all our</p>
+<p begin="00:11:18.399" end="00:11:22.160" style="s2">images are ready, it&#39;s time to bring</p>
+<p begin="00:11:20.000" end="00:11:24.800" style="s2">them to life, turning everything into a</p>
+<p begin="00:11:22.160" end="00:11:27.279" style="s2">fun, educational video that kids will</p>
+<p begin="00:11:24.800" end="00:11:29.519" style="s2">love. For this part, we&#39;ll still be</p>
+<p begin="00:11:27.279" end="00:11:32.880" style="s2">using Design AI, but this time we&#39;ll</p>
+<p begin="00:11:29.519" end="00:11:35.440" style="s2">make use of its VO3.1 model, a powerful</p>
+<p begin="00:11:32.880" end="00:11:37.839" style="s2">tool that animates your images and syncs</p>
+<p begin="00:11:35.440" end="00:11:40.320" style="s2">them with the music you created earlier.</p>
+<p begin="00:11:37.839" end="00:11:43.200" style="s2">Here&#39;s how to do it step by step. On</p>
+<p begin="00:11:40.320" end="00:11:45.839" style="s2">your design I toolbar, select image to</p>
+<p begin="00:11:43.200" end="00:11:47.839" style="s2">video. Switch to the key frame option.</p>
+<p begin="00:11:45.839" end="00:11:51.320" style="s2">Delete the default image, then upload</p>
+<p begin="00:11:47.839" end="00:11:51.320" style="s2">your first scene.</p>
+<p begin="00:11:52.240" end="00:11:56.000" style="s2">In the prompt box below, write clear</p>
+<p begin="00:11:54.240" end="00:11:58.399" style="s2">instructions describing how you want</p>
+<p begin="00:11:56.000" end="00:12:00.800" style="s2">your characters or objects to move. For</p>
+<p begin="00:11:58.399" end="00:12:03.279" style="s2">example, the train runs along the track</p>
+<p begin="00:12:00.800" end="00:12:06.720" style="s2">happily. Next, it&#39;s time to choose your</p>
+<p begin="00:12:03.279" end="00:12:08.959" style="s2">model. For this, select Design&#39;s VO 3.1</p>
+<p begin="00:12:06.720" end="00:12:11.760" style="s2">model, which can turn a single photo or</p>
+<p begin="00:12:08.959" end="00:12:14.480" style="s2">a series of images into smooth animated</p>
+<p begin="00:12:11.760" end="00:12:16.720" style="s2">videos complete with motion transitions</p>
+<p begin="00:12:14.480" end="00:12:19.440" style="s2">and effects, bringing your visuals to</p>
+<p begin="00:12:16.720" end="00:12:22.880" style="s2">life effortlessly. Set your aspect ratio</p>
+<p begin="00:12:19.440" end="00:12:24.639" style="s2">to 16-9, then click generate. In just a</p>
+<p begin="00:12:22.880" end="00:12:26.720" style="s2">few moments, Design will process your</p>
+<p begin="00:12:24.639" end="00:12:29.040" style="s2">image and transform it into a video</p>
+<p begin="00:12:26.720" end="00:12:31.040" style="s2">version of your prompt. Once it&#39;s ready,</p>
+<p begin="00:12:29.040" end="00:12:32.720" style="s2">download your video clip and repeat the</p>
+<p begin="00:12:31.040" end="00:12:34.800" style="s2">same process for all your remaining</p>
+<p begin="00:12:32.720" end="00:12:37.279" style="s2">scenes. And there you have it. Your</p>
+<p begin="00:12:34.800" end="00:12:39.440" style="s2">video scenes are now complete. Repeat</p>
+<p begin="00:12:37.279" end="00:12:41.760" style="s2">these steps for each image until your</p>
+<p begin="00:12:39.440" end="00:12:44.480" style="s2">entire song has been animated scene by</p>
+<p begin="00:12:41.760" end="00:12:46.480" style="s2">scene. Before long, your nursery rhyme</p>
+<p begin="00:12:44.480" end="00:12:48.800" style="s2">video will be fully alive and ready to</p>
+<p begin="00:12:46.480" end="00:12:51.200" style="s2">share with the [music] world. Step six,</p>
+<p begin="00:12:48.800" end="00:12:53.920" style="s2">bringing your videos together using Cap</p>
+<p begin="00:12:51.200" end="00:12:55.760" style="s2">Cut. Now that your nursery rhyme is</p>
+<p begin="00:12:53.920" end="00:12:57.360" style="s2">complete and all your animated scenes</p>
+<p begin="00:12:55.760" end="00:13:00.160" style="s2">are ready, it&#39;s time to bring everything</p>
+<p begin="00:12:57.360" end="00:13:02.480" style="s2">together into one smooth finished video.</p>
+<p begin="00:13:00.160" end="00:13:04.560" style="s2">We&#39;ll be using Cap Cut, a free and</p>
+<p begin="00:13:02.480" end="00:13:06.480" style="s2">beginnerfriendly video editing tool that</p>
+<p begin="00:13:04.560" end="00:13:08.880" style="s2">makes this process [music] super easy.</p>
+<p begin="00:13:06.480" end="00:13:10.880" style="s2">Here&#39;s how to do it. Open Cap Cut and</p>
+<p begin="00:13:08.880" end="00:13:13.040" style="s2">start a new project. [music] Import all</p>
+<p begin="00:13:10.880" end="00:13:14.800" style="s2">your generated video scenes. Drag each</p>
+<p begin="00:13:13.040" end="00:13:17.800" style="s2">scene onto the timeline in the correct</p>
+<p begin="00:13:14.800" end="00:13:17.800" style="s2">order.</p>
+<p begin="00:13:24.399" end="00:13:29.279" style="s2">Set your video size to 16 to9, the</p>
+<p begin="00:13:26.959" end="00:13:32.160" style="s2">perfect format for YouTube. Keep each</p>
+<p begin="00:13:29.279" end="00:13:34.880" style="s2">clip short, colorful, and lively.</p>
+<p begin="00:13:32.160" end="00:13:36.800" style="s2">Remember, short attention spans. This</p>
+<p begin="00:13:34.880" end="00:13:39.600" style="s2">helps keep kids engaged from start to</p>
+<p begin="00:13:36.800" end="00:13:41.440" style="s2">finish. Next, drag and drop your audio</p>
+<p begin="00:13:39.600" end="00:13:44.000" style="s2">track, the song you created earlier,</p>
+<p begin="00:13:41.440" end="00:13:45.600" style="s2">onto the audio timeline and align each</p>
+<p begin="00:13:44.000" end="00:13:47.920" style="s2">scene with the part of the song it</p>
+<p begin="00:13:45.600" end="00:13:51.040" style="s2">matches. Now, let&#39;s make it even more</p>
+<p begin="00:13:47.920" end="00:13:52.800" style="s2">fun and interactive. Use Cap Cut&#39;s auto</p>
+<p begin="00:13:51.040" end="00:13:55.519" style="s2">caption feature to automatically</p>
+<p begin="00:13:52.800" end="00:13:57.519" style="s2">generate subtitles. Captions make your</p>
+<p begin="00:13:55.519" end="00:13:59.199" style="s2">video more accessible and help kids</p>
+<p begin="00:13:57.519" end="00:14:01.920" style="s2">follow along with the lyrics as they</p>
+<p begin="00:13:59.199" end="00:14:04.304" style="s2">sing. After generating the captions,</p>
+<p begin="00:14:01.920" end="00:14:05.920" style="s2">adjust the fonts, size, and colors to</p>
+<p begin="00:14:04.304" end="00:14:08.079" style="s2">[music] match the playful theme of your</p>
+<p begin="00:14:05.920" end="00:14:10.320" style="s2">song. You can also add simple</p>
+<p begin="00:14:08.079" end="00:14:12.959" style="s2">transitions, effects, or animated text</p>
+<p begin="00:14:10.320" end="00:14:15.760" style="s2">to make your video more dynamic and</p>
+<p begin="00:14:12.959" end="00:14:18.560" style="s2">polished. Once everything looks great,</p>
+<p begin="00:14:15.760" end="00:14:20.639" style="s2">click export in the top right corner.</p>
+<p begin="00:14:18.560" end="00:14:23.279" style="s2">And that&#39;s it. Um, you&#39;ve just created</p>
+<p begin="00:14:20.639" end="00:14:25.120" style="s2">your very own nursery rhyme song video</p>
+<p begin="00:14:23.279" end="00:14:28.320" style="s2">completely from scratch without needing</p>
+<p begin="00:14:25.120" end="00:14:31.920" style="s2">a studio or expensive gear. All you used</p>
+<p begin="00:14:28.320" end="00:14:33.680" style="s2">were smart AI tools and your creativity.</p>
+<p begin="00:14:31.920" end="00:14:36.959" style="s2">All the links to the tools I used,</p>
+<p begin="00:14:33.680" end="00:14:39.199" style="s2">including designs VO 3.1, are listed in</p>
+<p begin="00:14:36.959" end="00:14:41.920" style="s2">the video description. Go ahead, explore</p>
+<p begin="00:14:39.199" end="00:14:43.680" style="s2">them and try creating your own versions.</p>
+<p begin="00:14:41.920" end="00:14:45.760" style="s2">I can&#39;t [music] wait to see what you</p>
+<p begin="00:14:43.680" end="00:14:47.839" style="s2">come up with. Also, don&#39;t forget to</p>
+<p begin="00:14:45.760" end="00:14:50.480" style="s2">visit my Telegram channel to grab the</p>
+<p begin="00:14:47.839" end="00:14:52.480" style="s2">exact prompts I used, Gekkam, so you can</p>
+<p begin="00:14:50.480" end="00:14:54.720" style="s2">follow along or customize your own</p>
+<p begin="00:14:52.480" end="00:14:57.120" style="s2">creation. If you found this tutorial</p>
+<p begin="00:14:54.720" end="00:14:59.519" style="s2">helpful, make sure to like this video,</p>
+<p begin="00:14:57.120" end="00:15:02.079" style="s2">subscribe, and drop a comment telling me</p>
+<p begin="00:14:59.519" end="00:15:04.959" style="s2">what kind of kids video you plan to make</p>
+<p begin="00:15:02.079" end="00:15:07.959" style="s2">next. Thanks for watching and happy</p>
+<p begin="00:15:04.959" end="00:15:07.959" style="s2">creating.</p>
+</div>
+</body>
+</tt>

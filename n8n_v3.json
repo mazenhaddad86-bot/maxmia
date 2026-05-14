@@ -1,0 +1,417 @@
+{
+    "name":  "Max \u0026 Mia — Nursery Rhyme Video Pipeline",
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "trigger-webhook",
+                      "name":  "Manual Start",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       240,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "values":  {
+                                                        "string":  [
+                                                                       {
+                                                                           "name":  "theme",
+                                                                           "value":  "Baa Baa Black Sheep"
+                                                                       },
+                                                                       {
+                                                                           "name":  "suno_api_key",
+                                                                           "value":  "d8ccd0ed9c145a188336beaa9195475b"
+                                                                       }
+                                                                   ]
+                                                    },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "set-variables",
+                      "name":  "Set Variables",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3,
+                      "position":  [
+                                       460,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://api.anthropic.com/v1/messages",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpHeaderAuth",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "x-api-key",
+                                                                                         "value":  "="
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "anthropic-version",
+                                                                                         "value":  "2023-06-01"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "content-type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 1024,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Generate a complete Suno AI music prompt for a children\u0027s nursery rhyme about \u0027{{ $(\u0027Set Variables\u0027).item.json.theme }}\u0027. Return ONLY valid JSON with these fields: {\\\"lyrics\\\": \\\"[Intro]\\\\n...\\\", \\\"style\\\": \\\"children\u0027s nursery rhyme, glockenspiel, xylophone, bouncy 3/4 waltz, toy piano, upbeat, 90 BPM\\\"}\"\n  }]\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "claude-lyrics",
+                      "name":  "Claude — Generate Lyrics",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       680,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const response = $input.first().json;\nconst content = response.content[0].text;\nlet parsed;\ntry {\n  const match = content.match(/\\{[\\s\\S]*\\}/);\n  parsed = JSON.parse(match[0]);\n} catch(e) {\n  parsed = { lyrics: content, style: \"children\u0027s nursery rhyme, glockenspiel, upbeat\" };\n}\nreturn [{ json: { lyrics: parsed.lyrics, style: parsed.style, theme: $(\u0027Set Variables\u0027).item.json.theme } }];"
+                                     },
+                      "id":  "parse-lyrics",
+                      "name":  "Parse Lyrics",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       900,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://apibox.erweima.ai/api/v1/generate",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Authorization",
+                                                                                         "value":  "=Bearer {{ $(\u0027Set Variables\u0027).item.json.suno_api_key }}"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"prompt\": \"{{ $json.lyrics }}\",\n  \"style\": \"{{ $json.style }}\",\n  \"title\": \"{{ $json.theme }} - Max und Mia World\",\n  \"customMode\": true,\n  \"instrumental\": false,\n  \"model\": \"V3_5\",\n  \"negativeTags\": \"heavy metal, rock, electric guitar, drums, dark\"\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "suno-generate",
+                      "name":  "Suno — Generate Song",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       1120,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "amount":  60,
+                                         "unit":  "seconds"
+                                     },
+                      "id":  "wait-suno",
+                      "name":  "Wait 60s for Suno",
+                      "type":  "n8n-nodes-base.wait",
+                      "typeVersion":  1,
+                      "position":  [
+                                       1340,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "GET",
+                                         "url":  "=https://apibox.erweima.ai/api/v1/generate/record-info?taskId={{ $(\u0027Suno — Generate Song\u0027).item.json.data.taskId }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Authorization",
+                                                                                         "value":  "=Bearer {{ $(\u0027Set Variables\u0027).item.json.suno_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "suno-poll",
+                      "name":  "Suno — Poll Status",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       1560,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const data = $input.first().json;\nconst songs = data.data?.response || [];\nconst ready = songs.filter(s =\u003e s.audioUrl);\nif (ready.length === 0) throw new Error(\u0027Song not ready yet\u0027);\nconst song = ready[0];\nreturn [{ json: { audioUrl: song.audioUrl, title: song.title, taskId: data.data?.taskId } }];"
+                                     },
+                      "id":  "extract-audio",
+                      "name":  "Extract Audio URL",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1780,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "GET",
+                                         "url":  "={{ $json.audioUrl }}",
+                                         "options":  {
+                                                         "response":  {
+                                                                          "response":  {
+                                                                                           "responseFormat":  "file",
+                                                                                           "outputPropertyName":  "audio"
+                                                                                       }
+                                                                      }
+                                                     }
+                                     },
+                      "id":  "download-mp3",
+                      "name":  "Download MP3",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       2000,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "write",
+                                         "fileName":  "=C:/Users/myshi/Documents/Claude/Projects/video-animation-kids/music/{{ $(\u0027Parse Lyrics\u0027).item.json.theme.replace(/ /g,\u0027_\u0027) }}_auto.mp3",
+                                         "dataPropertyName":  "audio"
+                                     },
+                      "id":  "save-mp3",
+                      "name":  "Save MP3",
+                      "type":  "n8n-nodes-base.writeBinaryFile",
+                      "typeVersion":  1,
+                      "position":  [
+                                       2220,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "specifyBody":  "json",
+                                         "sendBody":  true,
+                                         "method":  "POST",
+                                         "options":  {
+
+                                                     },
+                                         "jsonBody":  "={\"theme\": \"{{ $(`\u0027Parse Lyrics`\u0027).item.json.theme }}\", \"music_path\": \"{{ $(`\u0027Save MP3`\u0027).item.json.fileName }}\"}",
+                                         "url":  "http://localhost:8765/build-video"
+                                     },
+                      "id":  "build-video",
+                      "name":  "Build Video (ffmpeg)",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       2440,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "specifyBody":  "json",
+                                         "sendBody":  true,
+                                         "method":  "POST",
+                                         "options":  {
+
+                                                     },
+                                         "jsonBody":  "={\"video_path\": \"{{ $json.video_path }}\", \"title\": \"{{ $(`\u0027Parse Lyrics`\u0027).item.json.theme }} | Max und Mia World\"}",
+                                         "url":  "http://localhost:8765/youtube-upload"
+                                     },
+                      "id":  "youtube-upload",
+                      "name":  "YouTube Upload",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       2660,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "json",
+                                         "responseBody":  "={ \"success\": true, \"theme\": \"{{ $(\u0027Parse Lyrics\u0027).item.json.theme }}\", \"status\": \"Video wird verarbeitet\" }"
+                                     },
+                      "id":  "response",
+                      "name":  "Response",
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1,
+                      "position":  [
+                                       2880,
+                                       300
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Webhook Trigger":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "node":  "Set Variables",
+                                                                     "type":  "main",
+                                                                     "index":  0
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Set Variables":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "Claude — Generate Lyrics",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               }
+                                                           ]
+                                                       ]
+                                          },
+                        "Claude — Generate Lyrics":  {
+                                                         "main":  [
+                                                                      [
+                                                                          {
+                                                                              "node":  "Parse Lyrics",
+                                                                              "type":  "main",
+                                                                              "index":  0
+                                                                          }
+                                                                      ]
+                                                                  ]
+                                                     },
+                        "Parse Lyrics":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Suno — Generate Song",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "Suno — Generate Song":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Wait 60s for Suno",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Wait 60s for Suno":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Suno — Poll Status",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Suno — Poll Status":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Extract Audio URL",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Extract Audio URL":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Download MP3",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Download MP3":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Save MP3",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "Save MP3":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "Build Video (ffmpeg)",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "Build Video (ffmpeg)":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "YouTube Upload",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "YouTube Upload":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Response",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1"
+                 },
+    "tags":  [
+                 {
+                     "name":  "MaxMiaWorld"
+                 }
+             ],
+    "id":  "maxmia-pipeline-001"
+}

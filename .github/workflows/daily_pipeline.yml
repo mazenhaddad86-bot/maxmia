@@ -1,0 +1,125 @@
+name: Max & Mia World — Daily Video Pipeline
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # Täglich 02:00 UTC (03:00 Berlin)
+  workflow_dispatch:        # Manuell auslösbar via GitHub UI
+
+jobs:
+  generate-video:
+    name: Generate & Upload Kids Video
+    runs-on: ubuntu-latest
+    timeout-minutes: 360    # Max 6 Stunden
+
+    steps:
+      # ── Code holen ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Python Setup ───────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # ── System Dependencies ────────────────────────────────────────────────
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg xvfb x11-utils
+
+      # ── Python Dependencies ────────────────────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install playwright
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      # ── Credentials Setup ──────────────────────────────────────────────────
+      - name: Restore YouTube credentials
+        run: |
+          mkdir -p youtube
+          echo "${{ secrets.YOUTUBE_TOKEN_JSON }}" | base64 -d > /tmp/youtube_token.json
+          echo "${{ secrets.YOUTUBE_CLIENT_SECRETS }}" | base64 -d > youtube/client_secrets.json
+          python - <<'EOF'
+          import json, pickle, base64
+          from pathlib import Path
+          from google.oauth2.credentials import Credentials
+
+          with open('/tmp/youtube_token.json') as f:
+              data = json.load(f)
+
+          creds = Credentials(
+              token=data['token'],
+              refresh_token=data['refresh_token'],
+              token_uri=data['token_uri'],
+              client_id=data['client_id'],
+              client_secret=data['client_secret'],
+              scopes=data['scopes'],
+          )
+          with open('youtube/token.pickle', 'wb') as f:
+              pickle.dump(creds, f)
+          print("✅ YouTube token restored")
+          EOF
+
+      # ── State wiederherstellen (für Round-Robin) ───────────────────────────
+      - name: Restore pipeline state
+        run: |
+          if [ -f "state.json" ]; then
+            echo "✅ state.json found"
+          else
+            echo '{"last_theme_index": -1}' > state.json
+            echo "📝 state.json created fresh"
+          fi
+
+      # ── Pipeline ausführen ─────────────────────────────────────────────────
+      - name: Run pipeline
+        env:
+          HIGGSFIELD_COOKIES: ${{ secrets.HIGGSFIELD_COOKIES }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DISPLAY: ':99'
+        run: |
+          # Xvfb starten (virtuelles Display für Browser)
+          Xvfb :99 -screen 0 1920x1080x24 &
+          sleep 2
+          echo "✅ Xvfb started"
+
+          # Pipeline starten
+          python scripts/pipeline_orchestrator.py
+
+      # ── State für nächsten Run speichern ───────────────────────────────────
+      - name: Commit updated state
+        run: |
+          git config --global user.email "pipeline@maxmiaworld.com"
+          git config --global user.name "Max & Mia Pipeline"
+          git add state.json
+          git diff --staged --quiet || git commit -m "chore: update pipeline state [skip ci]"
+          git push || true
+
+      # ── Output als Artifact speichern ──────────────────────────────────────
+      - name: Upload output artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-output-${{ github.run_number }}
+          path: |
+            output/*/jobs.json
+            output/*/*.mp4
+          retention-days: 7
+
+      # ── Pipeline Log ───────────────────────────────────────────────────────
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Run: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f state.json ]; then
+            echo "State: $(cat state.json)" >> $GITHUB_STEP_SUMMARY
+          fi
+          find output -name "jobs.json" -exec echo "Jobs: {}" \; >> $GITHUB_STEP_SUMMARY 2>/dev/null || true

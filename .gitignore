@@ -1,0 +1,25 @@
+# Secrets — NIEMALS committen!
+.env
+youtube/token.pickle
+youtube/client_secrets.json
+youtube/client_secret.json
+higgsfield_cookies_TEMP.json
+/tmp/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Output (zu groß für GitHub)
+output/
+*.mp4
+*.mp3
+
+# Pipeline State (wird vom Workflow selbst verwaltet)
+# state.json  ← NICHT ignorieren, wird für Round-Robin gebraucht
+
+# Logs
+*.log
+pipeline.log
