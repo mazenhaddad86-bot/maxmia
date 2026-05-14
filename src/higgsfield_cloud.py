@@ -232,17 +232,101 @@ async def _generate_video_async(
             pass
 
         # Alle sichtbaren Buttons loggen (für Debugging)
+        btn_texts = []
         try:
             buttons = page.locator("button:visible")
             n_btns = await buttons.count()
-            btn_texts = []
-            for i in range(min(n_btns, 15)):
+            for i in range(min(n_btns, 20)):
                 t = await buttons.nth(i).text_content()
                 if t:
-                    btn_texts.append(t.strip()[:30])
+                    btn_texts.append(t.strip()[:40])
             log.info(f"🔍 Sichtbare Buttons ({n_btns}): {btn_texts}")
         except Exception as e:
             log.warning(f"Button-Debug fehlgeschlagen: {e}")
+
+        # Alle selects/dropdowns loggen (für Debugging)
+        try:
+            selects = page.locator("select, [role='listbox'], [role='combobox'], [role='option']")
+            n_sel = await selects.count()
+            sel_texts = []
+            for i in range(min(n_sel, 10)):
+                t = await selects.nth(i).text_content()
+                if t:
+                    sel_texts.append(t.strip()[:40])
+            log.info(f"🔍 Dropdowns/Selects ({n_sel}): {sel_texts}")
+        except Exception as e:
+            log.warning(f"Select-Debug fehlgeschlagen: {e}")
+
+        # ── Kling 2.5 Turbo Modell auswählen ─────────────────────────────────
+        # Higgsfield Video hat Modell-Auswahl: Kling 1.6 / Kling 2.0 / Kling 2.1 / Kling 2.5 Turbo
+        KLING_SELECTORS = [
+            "button:has-text('Kling 2.5')",
+            "button:has-text('2.5 Turbo')",
+            "button:has-text('Turbo')",
+            "[role='option']:has-text('Kling 2.5')",
+            "[role='option']:has-text('Turbo')",
+            "li:has-text('Kling 2.5')",
+            "li:has-text('2.5 Turbo')",
+            "span:has-text('Kling 2.5')",
+            "[data-value*='kling-2.5']",
+            "[data-value*='turbo']",
+        ]
+        kling_selected = False
+        for sel in KLING_SELECTORS:
+            try:
+                el = page.locator(sel).first
+                if await el.count() > 0:
+                    await el.click(timeout=3000)
+                    await page.wait_for_timeout(800)
+                    log.info(f"✅ Kling 2.5 Turbo ausgewählt via '{sel}'")
+                    kling_selected = True
+                    break
+            except Exception:
+                pass
+        if not kling_selected:
+            # Versuche Model-Dropdown zu öffnen und dann Kling 2.5 zu finden
+            try:
+                model_drop = page.locator("button:has-text('Model'), button:has-text('Modell'), [aria-label*='model' i]").first
+                if await model_drop.count() > 0:
+                    await model_drop.click(timeout=3000)
+                    await page.wait_for_timeout(600)
+                    # Jetzt nochmals versuchen
+                    for sel in KLING_SELECTORS:
+                        el = page.locator(sel).first
+                        if await el.count() > 0:
+                            await el.click(timeout=3000)
+                            await page.wait_for_timeout(800)
+                            log.info(f"✅ Kling 2.5 Turbo (nach Dropdown-Öffnen) via '{sel}'")
+                            kling_selected = True
+                            break
+            except Exception as e:
+                log.warning(f"Model-Dropdown-Versuch fehlgeschlagen: {e}")
+        if not kling_selected:
+            log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell wird verwendet")
+
+        # ── 720p Auflösung setzen ─────────────────────────────────────────────
+        RES_SELECTORS = [
+            "button:has-text('720p')",
+            "[role='option']:has-text('720p')",
+            "li:has-text('720p')",
+            "span:has-text('720p')",
+            "[data-value='720']",
+            "[data-value='720p']",
+        ]
+        res_selected = False
+        for sel in RES_SELECTORS:
+            try:
+                el = page.locator(sel).first
+                if await el.count() > 0:
+                    await el.click(timeout=3000)
+                    await page.wait_for_timeout(800)
+                    log.info(f"✅ 720p ausgewählt via '{sel}'")
+                    res_selected = True
+                    break
+            except Exception:
+                pass
+        if not res_selected:
+            log.warning("⚠️ 720p nicht gefunden — Standard-Auflösung wird verwendet")
 
         # Lokales Bild hochladen
         try:
