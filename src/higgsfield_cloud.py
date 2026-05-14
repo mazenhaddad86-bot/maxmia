@@ -618,8 +618,7 @@ async def _generate_video_async(
             try:
                 btn = page.locator(sel).first
                 if await btn.count() > 0:
-                    # force=True falls Button visuell disabled aber klickbar
-                    await btn.click(timeout=8000, force=True)
+                    await btn.click(timeout=8000)
                     log.info(f"🎬 Generiere Video mit '{sel}': {prompt[:50]}...")
                     clicked = True
                     break
@@ -638,18 +637,36 @@ async def _generate_video_async(
                 await browser.close()
                 raise RuntimeError(f"Generate-Button nicht gefunden. Buttons waren: {btn_texts}")
 
-        # Warten (max 8 Min für Video)
+        # Warten auf ECHTES generiertes Video (max 8 Min)
+        # WICHTIG: "product-to-video.mp4" ist ein Demo-Placeholder — NICHT akzeptieren!
+        # Nur URLs akzeptieren die nach dem Generate-Klick erscheinen und kein Demo sind.
+        PLACEHOLDER_URLS = [
+            "product-to-video.mp4",
+            "demo",
+            "placeholder",
+            "sample",
+            "example",
+        ]
         vid_url = None
         deadline = time.time() + 480
+        log.info("⏳ Warte auf generiertes Video (Demo-Placeholder wird ignoriert)...")
         while time.time() < deadline:
             await page.wait_for_timeout(5000)
             candidates = page.locator("video source[src], video[src]")
             n = await candidates.count()
             if n > 0:
-                url = await candidates.last.get_attribute("src")
-                if url and url.startswith("http"):
+                for i in range(n - 1, -1, -1):  # Von hinten (neuestes zuerst)
+                    url = await candidates.nth(i).get_attribute("src")
+                    if not url or not url.startswith("http"):
+                        continue
+                    # Demo-Placeholder ablehnen
+                    if any(p in url for p in PLACEHOLDER_URLS):
+                        log.debug(f"   ⏭️ Demo-Video ignoriert: {url[:60]}")
+                        continue
                     vid_url = url
-                    log.info(f"✅ Video bereit: {url[:80]}")
+                    log.info(f"✅ Echtes Video bereit: {url[:80]}")
+                    break
+                if vid_url:
                     break
 
         if not vid_url:
