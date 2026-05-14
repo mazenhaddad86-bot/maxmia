@@ -16,6 +16,8 @@ __pycache__/
 output/
 *.mp4
 *.mp3
+# Fallback-Musik im music/ Ordner ERLAUBEN
+!music/*.mp3
 
 # Pipeline State (wird vom Workflow selbst verwaltet)
 # state.json  ← NICHT ignorieren, wird für Round-Robin gebraucht
