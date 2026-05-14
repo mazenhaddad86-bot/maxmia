@@ -27,12 +27,20 @@ CHAR_PROMPT = (
 )
 
 
+def _strip_bom(raw: str) -> str:
+    """Entfernt UTF-8 BOM und nicht-ASCII Zeichen (PowerShell schreibt BOM)."""
+    raw = raw.strip().lstrip('﻿').lstrip('\xef\xbb\xbf').strip()
+    raw = raw.encode('ascii', errors='ignore').decode('ascii').strip()
+    return raw
+
+
 def _load_cookies() -> list[dict]:
     raw = os.environ.get("HIGGSFIELD_COOKIES", "")
     if not raw:
         raise ValueError("HIGGSFIELD_COOKIES not set in environment")
+    raw = _strip_bom(raw)
     try:
-        return json.loads(base64.b64decode(raw))
+        return json.loads(base64.b64decode(raw + "=="))
     except Exception:
         return json.loads(raw)  # Try plain JSON
 
