@@ -16,7 +16,7 @@ from pathlib import Path
 log = logging.getLogger("higgsfield_cloud")
 
 HIGGSFIELD_IMAGE_URL = "https://higgsfield.ai/image"
-HIGGSFIELD_VIDEO_URL = "https://higgsfield.ai/video"
+HIGGSFIELD_VIDEO_URL = "https://higgsfield.ai/ai/video"  # redirects from /video → /ai/video
 
 CHAR_PROMPT = (
     "Mia girl with brown pigtail hair and red ribbons, green eyes, freckles, "
@@ -75,6 +75,13 @@ async def _ensure_unlimited(page, max_retries: int = 3) -> bool:
         'label:has-text("Unlimited") + button',
         'input[type="checkbox"]:near(:text("Unlimited"))',
         'div:has-text("Unlimited") [role="switch"]',
+        # Neue Selektoren für /ai/video Seite
+        '[aria-label*="free" i]',
+        'button:has-text("Free")',
+        '[data-testid*="free"]',
+        'span:has-text("Unlimited")',
+        '[class*="toggle"]',
+        '[class*="switch"]',
     ]
 
     for attempt in range(1, max_retries + 1):
@@ -128,11 +135,28 @@ async def _ensure_unlimited(page, max_retries: int = 3) -> bool:
         except Exception as e:
             log.warning(f"   Toggle-Versuch {attempt} Exception: {e}")
 
-    # Alle 3 Versuche gescheitert → HARD STOP
+    # Alle 3 Versuche gescheitert → Toggle-Diagnose + HARD STOP
     log.error("❌══════════════════════════════════════════════════════")
     log.error("❌ KRITISCH: Unlimited Toggle nach 3 Versuchen NICHT ON!")
-    log.error("❌ STOPPE GENERIERUNG — würde Credits kosten!")
     log.error(f"❌ Seiten-URL: {page.url}")
+
+    # Alle Switch/Toggle/Checkbox-Elemente loggen für Diagnose
+    try:
+        for diag_sel in ['[role="switch"]', '[aria-checked]', 'input[type="checkbox"]',
+                         '[class*="toggle"]', '[class*="switch"]']:
+            els = page.locator(diag_sel)
+            n = await els.count()
+            if n > 0:
+                texts = []
+                for i in range(min(n, 5)):
+                    txt = await els.nth(i).text_content()
+                    ac = await els.nth(i).get_attribute("aria-checked")
+                    cls = await els.nth(i).get_attribute("class")
+                    texts.append(f"text={txt!r} aria-checked={ac!r} class={str(cls)[:40]!r}")
+                log.error(f"❌ DIAG '{diag_sel}' ({n}): {texts}")
+    except Exception as e:
+        log.error(f"❌ Diagnose fehlgeschlagen: {e}")
+
     log.error("❌ FIX: Higgsfield.ai öffnen → Toggle manuell ON → Cookies erneuern")
     log.error("❌══════════════════════════════════════════════════════")
     try:
@@ -453,61 +477,77 @@ async def _generate_video_async(
         except Exception as e:
             log.warning(f"Select-Debug fehlgeschlagen: {e}")
 
-        # ── Kling 2.5 Turbo Modell auswählen ─────────────────────────────────
-        # Higgsfield Video hat Modell-Auswahl: Kling 1.6 / Kling 2.0 / Kling 2.1 / Kling 2.5 Turbo
-        KLING_SELECTORS = [
+        # ── Modell auswählen: Kling 2.5 Turbo (bevorzugt) ───────────────────
+        # Aus Logs: Model-Button heißt "ModelSeedance 2.0" (Label + Modellname)
+        # → Erst Model-Button klicken um Dropdown zu öffnen, dann Kling 2.5 wählen
+        MODEL_BTN_SELECTORS = [
+            "button:has-text('Model')",       # "ModelSeedance 2.0" enthält "Model"
+            "button:has-text('Seedance')",    # aktueller Default
+            "[aria-label*='model' i]",
+        ]
+        KLING_OPTION_SELECTORS = [
             "button:has-text('Kling 2.5')",
             "button:has-text('2.5 Turbo')",
-            "button:has-text('Turbo')",
+            "button:has-text('Kling 2.1')",   # Fallback: ältere Kling-Version
+            "button:has-text('Kling 2.0')",
             "[role='option']:has-text('Kling 2.5')",
-            "[role='option']:has-text('Turbo')",
+            "[role='option']:has-text('Kling')",
             "li:has-text('Kling 2.5')",
-            "li:has-text('2.5 Turbo')",
+            "li:has-text('Kling')",
             "span:has-text('Kling 2.5')",
-            "[data-value*='kling-2.5']",
-            "[data-value*='turbo']",
+            "[data-value*='kling']",
         ]
         kling_selected = False
-        for sel in KLING_SELECTORS:
+
+        # Versuche direkt Kling zu finden (falls Dropdown schon offen)
+        for sel in KLING_OPTION_SELECTORS:
             try:
                 el = page.locator(sel).first
                 if await el.count() > 0:
                     await el.click(timeout=3000)
                     await page.wait_for_timeout(800)
-                    log.info(f"✅ Kling 2.5 Turbo ausgewählt via '{sel}'")
+                    log.info(f"✅ Kling Modell ausgewählt (direkt) via '{sel}'")
                     kling_selected = True
                     break
             except Exception:
                 pass
-        if not kling_selected:
-            # Versuche Model-Dropdown zu öffnen und dann Kling 2.5 zu finden
-            try:
-                model_drop = page.locator("button:has-text('Model'), button:has-text('Modell'), [aria-label*='model' i]").first
-                if await model_drop.count() > 0:
-                    await model_drop.click(timeout=3000)
-                    await page.wait_for_timeout(600)
-                    # Jetzt nochmals versuchen
-                    for sel in KLING_SELECTORS:
-                        el = page.locator(sel).first
-                        if await el.count() > 0:
-                            await el.click(timeout=3000)
-                            await page.wait_for_timeout(800)
-                            log.info(f"✅ Kling 2.5 Turbo (nach Dropdown-Öffnen) via '{sel}'")
-                            kling_selected = True
-                            break
-            except Exception as e:
-                log.warning(f"Model-Dropdown-Versuch fehlgeschlagen: {e}")
-        if not kling_selected:
-            log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell wird verwendet")
 
-        # ── 720p Auflösung setzen ─────────────────────────────────────────────
+        if not kling_selected:
+            # Model-Button klicken um Dropdown zu öffnen
+            for btn_sel in MODEL_BTN_SELECTORS:
+                try:
+                    btn = page.locator(btn_sel).first
+                    if await btn.count() > 0:
+                        await btn.click(timeout=3000)
+                        await page.wait_for_timeout(800)
+                        log.info(f"🖱️ Model-Dropdown geöffnet via '{btn_sel}'")
+                        # Jetzt Kling-Option suchen
+                        for sel in KLING_OPTION_SELECTORS:
+                            el = page.locator(sel).first
+                            if await el.count() > 0:
+                                await el.click(timeout=3000)
+                                await page.wait_for_timeout(800)
+                                log.info(f"✅ Kling Modell ausgewählt (nach Dropdown) via '{sel}'")
+                                kling_selected = True
+                                break
+                        if kling_selected:
+                            break
+                except Exception as e:
+                    log.warning(f"Model-Dropdown '{btn_sel}' fehlgeschlagen: {e}")
+
+        if not kling_selected:
+            log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell (Seedance 2.0) wird verwendet")
+
+        # ── Auflösung: 1080p bevorzugt, 720p als Fallback ────────────────────
+        # Aus Logs: '1080p' Button bereits vorhanden auf /ai/video Seite
+        # 1080p ist besser als 720p → 1080p zuerst versuchen
         RES_SELECTORS = [
+            "button:has-text('1080p')",       # aus Logs bekannt — bereits Standard
             "button:has-text('720p')",
+            "[role='option']:has-text('1080p')",
             "[role='option']:has-text('720p')",
-            "li:has-text('720p')",
-            "span:has-text('720p')",
-            "[data-value='720']",
-            "[data-value='720p']",
+            "li:has-text('1080p')",
+            "[data-value='1080p']",
         ]
         res_selected = False
         for sel in RES_SELECTORS:
@@ -516,13 +556,13 @@ async def _generate_video_async(
                 if await el.count() > 0:
                     await el.click(timeout=3000)
                     await page.wait_for_timeout(800)
-                    log.info(f"✅ 720p ausgewählt via '{sel}'")
+                    log.info(f"✅ Auflösung ausgewählt via '{sel}'")
                     res_selected = True
                     break
             except Exception:
                 pass
         if not res_selected:
-            log.warning("⚠️ 720p nicht gefunden — Standard-Auflösung wird verwendet")
+            log.warning("⚠️ Auflösung nicht gesetzt — Standard wird verwendet")
 
         # Lokales Bild hochladen
         try:
