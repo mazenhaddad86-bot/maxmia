@@ -547,45 +547,50 @@ async def _generate_video_async(
         if not kling_selected:
             log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell (Seedance 2.0) wird verwendet")
 
-        # ── Auflösung: 1080p bevorzugt, 720p als Fallback ────────────────────
-        # Aus Logs: '1080p' Button bereits vorhanden auf /ai/video Seite
-        # 1080p ist besser als 720p → 1080p zuerst versuchen
-        RES_SELECTORS = [
-            "button:has-text('1080p')",       # aus Logs bekannt — bereits Standard
-            "button:has-text('720p')",
-            "[role='option']:has-text('1080p')",
-            "[role='option']:has-text('720p')",
-            "li:has-text('1080p')",
-            "[data-value='1080p']",
-        ]
-        res_selected = False
-        for sel in RES_SELECTORS:
-            try:
-                el = page.locator(sel).first
-                if await el.count() > 0:
-                    await el.click(timeout=3000)
-                    await page.wait_for_timeout(800)
-                    log.info(f"✅ Auflösung ausgewählt via '{sel}'")
-                    res_selected = True
-                    break
-            except Exception:
-                pass
-        if not res_selected:
-            log.warning("⚠️ Auflösung nicht gesetzt — Standard wird verwendet")
-
-        # Lokales Bild hochladen
+        # ── ZUERST Bild hochladen (Generate-Button erst danach klickbar!) ──────
+        # Reihenfolge wichtig: Upload → Prompt → Modell/Res → Generate
+        upload_done = False
         try:
             upload_input = page.locator("input[type='file']").first
             if await upload_input.count() > 0 and image_path and image_path.exists():
                 await upload_input.set_input_files(str(image_path))
                 await page.wait_for_timeout(3000)
                 log.info(f"📎 Bild hochgeladen: {image_path.name}")
+                upload_done = True
             else:
                 log.warning(f"⚠️ Kein file-input gefunden (count={await upload_input.count()})")
         except Exception as e:
             log.warning(f"Bild-Upload fehlgeschlagen: {e}")
 
-        # Prompt eingeben
+        # ── Auflösung: <select> Element mit select_option() ──────────────────
+        # Aus Logs: Dropdowns/Selects enthält '480p720p1080p' → ist ein <select>
+        res_selected = False
+        try:
+            res_select = page.locator("select").filter(has_text="1080p").first
+            if await res_select.count() > 0:
+                await res_select.select_option("1080p")
+                await page.wait_for_timeout(500)
+                log.info("✅ Auflösung 1080p via select_option() gesetzt")
+                res_selected = True
+        except Exception as e:
+            log.warning(f"select_option 1080p fehlgeschlagen: {e}")
+        if not res_selected:
+            # Fallback: Button-Klick
+            for res_sel in ["button:has-text('1080p')", "button:has-text('720p')"]:
+                try:
+                    el = page.locator(res_sel).first
+                    if await el.count() > 0:
+                        await el.click(timeout=3000)
+                        await page.wait_for_timeout(500)
+                        log.info(f"✅ Auflösung via Button '{res_sel}' gesetzt")
+                        res_selected = True
+                        break
+                except Exception:
+                    pass
+        if not res_selected:
+            log.warning("⚠️ Auflösung nicht gesetzt — 1080p ist Standard auf /ai/video")
+
+        # ── Prompt eingeben ───────────────────────────────────────────────────
         try:
             box = page.locator("textarea").first
             if await box.count() > 0:
@@ -597,15 +602,15 @@ async def _generate_video_async(
         except Exception as e:
             log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
 
-        # Generate/Animate Button — mehrere Selektoren versuchen
+        # ── Generate Button — nach Upload + Prompt klicken ───────────────────
+        # Aus Logs: Button heißt 'Generate9672' → has-text('Generate') matched
+        # Button ist nur klickbar NACHDEM Bild hochgeladen wurde
         VIDEO_BTN_SELECTORS = [
-            "button:has-text('Generate')",
+            "button:has-text('Generate')",   # matched 'Generate9672' ✅
             "button:has-text('Animate')",
             "button:has-text('Create')",
             "button:has-text('Run')",
             "button:has-text('Submit')",
-            "button:has-text('Create Video')",
-            "button:has-text('Generate Video')",
             "button[type='submit']",
         ]
         clicked = False
@@ -613,7 +618,8 @@ async def _generate_video_async(
             try:
                 btn = page.locator(sel).first
                 if await btn.count() > 0:
-                    await btn.click(timeout=5000)
+                    # force=True falls Button visuell disabled aber klickbar
+                    await btn.click(timeout=8000, force=True)
                     log.info(f"🎬 Generiere Video mit '{sel}': {prompt[:50]}...")
                     clicked = True
                     break
