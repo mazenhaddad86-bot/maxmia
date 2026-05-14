@@ -158,7 +158,7 @@ async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
 
 
 async def _new_browser_context(p):
-    """Erstellt Browser-Kontext mit User-Agent und Cookies."""
+    """Erstellt Browser-Kontext mit Anti-Bot-Stealth und Cookies."""
     browser = await p.chromium.launch(
         headless=False,  # headless=False mit xvfb-run in GitHub Actions
         args=[
@@ -166,19 +166,89 @@ async def _new_browser_context(p):
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
             "--disable-blink-features=AutomationControlled",
+            "--disable-infobars",
+            "--disable-extensions",
+            "--disable-gpu",
+            "--window-size=1920,1080",
+            "--start-maximized",
+            "--disable-web-security",
+            "--allow-running-insecure-content",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--ignore-certificate-errors",
+            "--lang=en-US,en",
         ],
     )
     ctx = await browser.new_context(
         viewport={"width": 1920, "height": 1080},
+        screen={"width": 1920, "height": 1080},
         user_agent=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/124.0.0.0 Safari/537.36"
         ),
+        locale="en-US",
+        timezone_id="America/New_York",
+        java_script_enabled=True,
+        has_touch=False,
+        is_mobile=False,
+        color_scheme="light",
+        extra_http_headers={
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+        },
     )
+
+    # ── Anti-Bot: navigator.webdriver verstecken ──────────────────────────────
+    # Higgsfield erkennt window.navigator.webdriver = true → Bot-Detection-Block
+    await ctx.add_init_script("""
+        // navigator.webdriver auf undefined setzen
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+
+        // Plugins simulieren (echter Browser hat Plugins)
+        Object.defineProperty(navigator, 'plugins', {
+            get: () => [1, 2, 3, 4, 5],
+        });
+
+        // Sprachen setzen
+        Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en'],
+        });
+
+        // Chrome-Objekt simulieren (Automation hat es manchmal nicht)
+        window.chrome = { runtime: {} };
+
+        // Permissions-API patchen (Automation hat andere Werte)
+        const originalQuery = window.navigator.permissions.query;
+        window.navigator.permissions.query = (parameters) => (
+            parameters.name === 'notifications' ?
+                Promise.resolve({ state: Notification.permission }) :
+                originalQuery(parameters)
+        );
+    """)
+
     cookies = _load_cookies()
     await ctx.add_cookies(cookies)
     return browser, ctx
+
+
+async def _apply_stealth(page) -> None:
+    """Wendet playwright-stealth auf eine Page an (nach new_page() aufrufen)."""
+    try:
+        from playwright_stealth import stealth_async
+        await stealth_async(page)
+        log.info("🥷 playwright-stealth angewendet")
+    except ImportError:
+        log.debug("playwright-stealth nicht installiert — init_script Stealth reicht")
+    except Exception as e:
+        log.warning(f"playwright-stealth Fehler: {e}")
 
 
 async def _download_with_ctx(ctx, url: str, dest: Path) -> None:
@@ -201,6 +271,7 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
     async with async_playwright() as p:
         browser, ctx = await _new_browser_context(p)
         page = await ctx.new_page()
+        await _apply_stealth(page)  # Anti-Bot vor dem ersten Laden
 
         ok = await _goto_with_retry(page, HIGGSFIELD_IMAGE_URL)
         if not ok:
@@ -276,6 +347,7 @@ async def _generate_video_async(
     async with async_playwright() as p:
         browser, ctx = await _new_browser_context(p)
         page = await ctx.new_page()
+        await _apply_stealth(page)  # Anti-Bot vor dem ersten Laden
 
         ok = await _goto_with_retry(page, HIGGSFIELD_VIDEO_URL)
         if not ok:
