@@ -49,7 +49,7 @@ def _load_cookies() -> list[dict]:
         return json.loads(raw)  # Try plain JSON
 
 
-async def _ensure_unlimited(page) -> bool:
+async def _ensure_unlimited(page, max_retries: int = 3) -> bool:
     """
     ══════════════════════════════════════════════════════════════
     ⚠️  PFLICHT-REGEL — WIRD VOR JEDER GENERIERUNG AUFGERUFEN ⚠️
@@ -59,7 +59,8 @@ async def _ensure_unlimited(page) -> bool:
       Toggle OFF             → Bilder: 2 Credits, Videos: ~10 Credits
     Kling 2.5 Turbo + 720p sind NUR kostenlos wenn Toggle ON ist!
 
-    REGEL: Wenn Toggle nicht ON → SOFORT STOPPEN.
+    REGEL: 3 Versuche Toggle ON zu aktivieren.
+           Erst nach 3 fehlgeschlagenen Versuchen → HARD STOP.
            Niemals mit Toggle OFF generieren.
     ══════════════════════════════════════════════════════════════
     """
@@ -70,43 +71,75 @@ async def _ensure_unlimited(page) -> bool:
         '[data-testid*="toggle"]',
         'button[aria-checked]',
         '[aria-label*="unlimited" i]',
-        '[aria-label*="unlimited" i]',
         'button:has-text("Unlimited")',
-        'label:has-text("Unlimited") input[type="checkbox"]',
+        'label:has-text("Unlimited") + button',
+        'input[type="checkbox"]:near(:text("Unlimited"))',
+        'div:has-text("Unlimited") [role="switch"]',
     ]
 
-    try:
-        for sel in TOGGLE_SELECTORS:
-            toggle = page.locator(sel).first
-            if await toggle.count() > 0:
-                checked = await toggle.get_attribute("aria-checked")
+    for attempt in range(1, max_retries + 1):
+        log.info(f"🔒 Toggle-Versuch {attempt}/{max_retries}...")
+        try:
+            # Seite etwas Zeit geben (besonders bei Versuch 2+)
+            if attempt > 1:
+                await page.wait_for_timeout(2000)
 
-                if checked != "true":
-                    log.warning(f"⚠️  Toggle AUS (aria-checked={checked!r}) → versuche zu aktivieren...")
+            toggle_found = False
+            for sel in TOGGLE_SELECTORS:
+                toggle = page.locator(sel).first
+                if await toggle.count() > 0:
+                    toggle_found = True
+                    checked = await toggle.get_attribute("aria-checked")
+                    log.info(f"   Toggle gefunden via '{sel}' — aria-checked={checked!r}")
+
+                    if checked == "true":
+                        log.info(f"✅ UNLIMITED TOGGLE: ON (Versuch {attempt}) — Kling 2.5 Turbo + 720p = 0 Credits!")
+                        # Screenshot zur Bestätigung
+                        try:
+                            await page.screenshot(path=f"/tmp/hf_toggle_on_{attempt}.png")
+                        except Exception:
+                            pass
+                        return True
+
+                    # Toggle ist AUS → klicken
+                    log.warning(f"   ⚠️  Toggle AUS → klicke (Versuch {attempt}/{max_retries})...")
                     await toggle.click()
                     await page.wait_for_timeout(2000)
                     checked = await toggle.get_attribute("aria-checked")
 
-                if checked == "true":
-                    log.info("✅ UNLIMITED TOGGLE: ON — Kling 2.5 Turbo + 720p = 0 Credits!")
-                    return True
-                else:
-                    # HARD STOP — darf NICHT generieren ohne Toggle ON
-                    log.error("❌ KRITISCH: Unlimited Toggle bleibt AUS nach Klick!")
-                    log.error("❌ STOPPE GENERIERUNG — würde Credits kosten!")
-                    log.error("❌ Bitte: 1) Higgsfield.ai öffnen 2) Toggle manuell aktivieren 3) Cookies erneuern")
-                    return False  # Caller muss sofort abbrechen
+                    if checked == "true":
+                        log.info(f"✅ UNLIMITED TOGGLE: ON nach Klick (Versuch {attempt}) — 0 Credits!")
+                        try:
+                            await page.screenshot(path=f"/tmp/hf_toggle_on_{attempt}.png")
+                        except Exception:
+                            pass
+                        return True
 
-        # Toggle nicht gefunden — AUCH STOPPEN (Sicherheitsprinzip)
-        log.error("❌ KRITISCH: Unlimited Toggle nicht gefunden auf der Seite!")
-        log.error("❌ Seiten-URL: " + page.url)
-        log.error("❌ STOPPE GENERIERUNG — Toggle-Status unbekannt, kein Risiko eingehen!")
-        return False  # Sicher ist sicher — nicht weitermachen wenn Toggle unbekannt
+                    log.warning(f"   Toggle bleibt AUS nach Klick — nächster Versuch...")
+                    break  # Selector gefunden aber Toggle noch AUS → neuer attempt
 
-    except Exception as e:
-        log.error(f"❌ KRITISCH: Toggle-Check Exception: {e}")
-        log.error("❌ STOPPE GENERIERUNG — Toggle-Status konnte nicht geprüft werden!")
-        return False  # Im Fehlerfall IMMER stoppen
+            if not toggle_found:
+                log.warning(f"   Toggle-Element nicht gefunden (Versuch {attempt}) — Screenshot + nächster Versuch")
+                try:
+                    await page.screenshot(path=f"/tmp/hf_toggle_notfound_{attempt}.png")
+                except Exception:
+                    pass
+
+        except Exception as e:
+            log.warning(f"   Toggle-Versuch {attempt} Exception: {e}")
+
+    # Alle 3 Versuche gescheitert → HARD STOP
+    log.error("❌══════════════════════════════════════════════════════")
+    log.error("❌ KRITISCH: Unlimited Toggle nach 3 Versuchen NICHT ON!")
+    log.error("❌ STOPPE GENERIERUNG — würde Credits kosten!")
+    log.error(f"❌ Seiten-URL: {page.url}")
+    log.error("❌ FIX: Higgsfield.ai öffnen → Toggle manuell ON → Cookies erneuern")
+    log.error("❌══════════════════════════════════════════════════════")
+    try:
+        await page.screenshot(path="/tmp/hf_toggle_FAILED.png")
+    except Exception:
+        pass
+    return False
 
 
 async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
