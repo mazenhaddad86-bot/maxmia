@@ -84,12 +84,36 @@ async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: 
         '[class*="switch"]',
     ]
 
+    def _is_on(val_aria: str | None, val_data: str | None) -> bool:
+        return val_aria == "true" or val_data == "on"
+
     for attempt in range(1, max_retries + 1):
         log.info(f"🔒 Toggle-Versuch {attempt}/{max_retries}...")
         try:
             # Seite etwas Zeit geben (besonders bei Versuch 2+)
             if attempt > 1:
-                await page.wait_for_timeout(2000)
+                await page.wait_for_timeout(3000)
+
+            # ── Schritt 0: Overlays/Modals wegräumen ─────────────────────────
+            # Playwright in Xvfb: manchmal blockiert ein Overlay den Toggle-Klick
+            try:
+                await page.keyboard.press("Escape")
+                await page.wait_for_timeout(300)
+            except Exception:
+                pass
+            for close_sel in [
+                'button[aria-label*="close" i]', 'button[aria-label*="dismiss" i]',
+                'button:has-text("×")', 'button:has-text("✕")', 'button:has-text("Close")',
+                '[data-dismiss]', '[data-radix-popper-content-wrapper] button',
+            ]:
+                try:
+                    el = page.locator(close_sel).first
+                    if await el.count() > 0:
+                        await el.click(timeout=1500)
+                        await page.wait_for_timeout(300)
+                        log.info(f"   🚪 Overlay geschlossen via '{close_sel}'")
+                except Exception:
+                    pass
 
             toggle_found = False
             for sel in TOGGLE_SELECTORS:
@@ -97,36 +121,70 @@ async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: 
                 if await toggle.count() > 0:
                     toggle_found = True
                     checked = await toggle.get_attribute("aria-checked")
-                    log.info(f"   Toggle gefunden via '{sel}' — aria-checked={checked!r}")
+                    data_state = await toggle.get_attribute("data-state")
+                    log.info(f"   Toggle via '{sel}' — aria-checked={checked!r} data-state={data_state!r}")
 
-                    if checked == "true":
-                        log.info(f"✅ UNLIMITED TOGGLE: ON (Versuch {attempt}) — Kling 2.5 Turbo + 720p = 0 Credits!")
-                        # Screenshot zur Bestätigung
+                    if _is_on(checked, data_state):
+                        log.info(f"✅ UNLIMITED TOGGLE: ON (Versuch {attempt}) — 0 Credits!")
                         try:
                             await page.screenshot(path=f"/tmp/hf_toggle_on_{attempt}.png")
                         except Exception:
                             pass
                         return True
 
-                    # Toggle ist AUS → klicken
-                    log.warning(f"   ⚠️  Toggle AUS → klicke (Versuch {attempt}/{max_retries})...")
-                    await toggle.click()
-                    await page.wait_for_timeout(2000)
-                    checked = await toggle.get_attribute("aria-checked")
+                    # Toggle ist AUS → 3-stufiger Klick-Versuch
+                    log.warning(f"   ⚠️  Toggle AUS — versuche Klick ({attempt}/{max_retries})...")
 
-                    if checked == "true":
-                        log.info(f"✅ UNLIMITED TOGGLE: ON nach Klick (Versuch {attempt}) — 0 Credits!")
-                        try:
-                            await page.screenshot(path=f"/tmp/hf_toggle_on_{attempt}.png")
-                        except Exception:
-                            pass
-                        return True
+                    # Stufe 1: in Sichtfeld scrollen + normaler Klick
+                    try:
+                        await toggle.scroll_into_view_if_needed()
+                        await page.wait_for_timeout(300)
+                        await toggle.click(timeout=5000)
+                        await page.wait_for_timeout(3000)
+                        checked = await toggle.get_attribute("aria-checked")
+                        data_state = await toggle.get_attribute("data-state")
+                        if _is_on(checked, data_state):
+                            log.info(f"✅ TOGGLE ON nach normalem Klick — 0 Credits!")
+                            return True
+                        log.warning(f"   Normaler Klick: Toggle bleibt {checked!r}/{data_state!r}")
+                    except Exception as e:
+                        log.warning(f"   Normaler Klick fehlgeschlagen: {e}")
 
-                    log.warning(f"   Toggle bleibt AUS nach Klick — nächster Versuch...")
+                    # Stufe 2: force=True Klick (umgeht Overlays)
+                    try:
+                        await toggle.click(force=True, timeout=5000)
+                        await page.wait_for_timeout(3000)
+                        checked = await toggle.get_attribute("aria-checked")
+                        data_state = await toggle.get_attribute("data-state")
+                        if _is_on(checked, data_state):
+                            log.info(f"✅ TOGGLE ON nach force-Klick — 0 Credits!")
+                            return True
+                        log.warning(f"   Force-Klick: Toggle bleibt {checked!r}/{data_state!r}")
+                    except Exception as e:
+                        log.warning(f"   Force-Klick fehlgeschlagen: {e}")
+
+                    # Stufe 3: JavaScript-Klick (umgeht ALLE Playwright-Checks)
+                    try:
+                        await page.evaluate("document.querySelector('[role=\"switch\"]').click()")
+                        await page.wait_for_timeout(3000)
+                        checked = await toggle.get_attribute("aria-checked")
+                        data_state = await toggle.get_attribute("data-state")
+                        if _is_on(checked, data_state):
+                            log.info(f"✅ TOGGLE ON nach JS-Klick — 0 Credits!")
+                            return True
+                        log.warning(f"   JS-Klick: Toggle bleibt {checked!r}/{data_state!r}")
+                    except Exception as e:
+                        log.warning(f"   JS-Klick fehlgeschlagen: {e}")
+
+                    log.warning(f"   Alle Klick-Stufen gescheitert — nächster attempt...")
+                    try:
+                        await page.screenshot(path=f"/tmp/hf_toggle_fail_{attempt}.png")
+                    except Exception:
+                        pass
                     break  # Selector gefunden aber Toggle noch AUS → neuer attempt
 
             if not toggle_found:
-                log.warning(f"   Toggle-Element nicht gefunden (Versuch {attempt}) — Screenshot + nächster Versuch")
+                log.warning(f"   Toggle nicht gefunden (Versuch {attempt})")
                 try:
                     await page.screenshot(path=f"/tmp/hf_toggle_notfound_{attempt}.png")
                 except Exception:
