@@ -15,8 +15,8 @@ from pathlib import Path
 
 log = logging.getLogger("higgsfield_cloud")
 
-HIGGSFIELD_IMAGE_URL = "https://higgsfield.ai/image"
-HIGGSFIELD_VIDEO_URL = "https://higgsfield.ai/ai/video"  # redirects from /video → /ai/video
+HIGGSFIELD_IMAGE_URL = "https://higgsfield.ai/ai/image"   # /image redirects to public landing!
+HIGGSFIELD_VIDEO_URL = "https://higgsfield.ai/ai/video"   # /video redirects too
 
 CHAR_PROMPT = (
     "Mia girl with brown pigtail hair and red ribbons, green eyes, freckles, "
@@ -376,20 +376,31 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             await browser.close()
             raise RuntimeError("Unlimited Toggle AUS — würde Credits kosten! Abbruch.")
 
-        # Aspect Ratio setzen
+        # Aspect Ratio: select nth(0) — DOM bestätigt: Werte "auto","1:1","3:4","16:9" etc.
         try:
-            ratio_btn = page.locator(f"button:has-text('{aspect_ratio}')").first
-            if await ratio_btn.count() > 0:
-                await ratio_btn.click()
+            ratio_select = page.locator("select").nth(0)
+            if await ratio_select.count() > 0:
+                await ratio_select.select_option(aspect_ratio)  # "16:9"
                 await page.wait_for_timeout(500)
-        except Exception:
-            pass
+                log.info(f"✅ Aspect Ratio {aspect_ratio} gesetzt")
+        except Exception as e:
+            log.warning(f"Aspect Ratio fehlgeschlagen: {e}")
 
-        # Prompt eingeben
-        box = page.locator("textarea").first
-        await box.click(click_count=3)
-        await box.fill(full_prompt)
-        await page.wait_for_timeout(600)
+        # Prompt eingeben — /ai/image hat KEIN <textarea>, nutzt [role="textbox"] (contenteditable)
+        try:
+            box = page.locator("[role='textbox']").first
+            if await box.count() == 0:
+                box = page.locator("textarea").first  # Fallback
+            await box.click()
+            await page.wait_for_timeout(300)
+            # Alten Inhalt löschen und neuen eingeben
+            await box.press("Control+a")
+            await box.press("Delete")
+            await box.type(full_prompt, delay=20)
+            await page.wait_for_timeout(600)
+            log.info(f"✏️ Prompt eingegeben ({len(full_prompt)} Zeichen)")
+        except Exception as e:
+            log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
 
         # ── WICHTIG: Vorhandene Bilder snapshotten VOR Generate-Klick ────────
         # Ohne das: Code nimmt Japan-Bilder o.ä. die schon auf der Seite sind!
@@ -409,10 +420,15 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         except Exception as e:
             log.warning(f"Snapshot vorhandener Bilder fehlgeschlagen: {e}")
 
-        # Generate klicken
-        btn = page.locator("button:has-text('Generate')").first
-        await btn.click()
-        log.info(f"🎨 Generate geklickt — warte auf NEUES Bild: {prompt[:60]}...")
+        # Generate — DOM bestätigt: button[type="submit"] auf /ai/image
+        try:
+            btn = page.locator("button[type='submit']").first
+            await btn.click(timeout=10000)
+            log.info(f"🎨 Generate geklickt — warte auf NEUES Bild: {prompt[:60]}...")
+        except Exception as e:
+            log.error(f"❌ Generate-Button Klick fehlgeschlagen: {e}")
+            await browser.close()
+            raise RuntimeError(f"Generate-Button nicht klickbar: {e}")
 
         # Mindestens 5s warten damit Generation starten kann
         await page.wait_for_timeout(5000)
@@ -557,30 +573,10 @@ async def _generate_video_async(
         except Exception:
             pass
 
-        # ── Unlimited Toggle MUSS ON sein — HARD STOP wenn nicht! ──────────────
-        # Toggle existiert AUF /ai/video Seite (aria-checked="false" = OFF → 4 Credits!)
-        # [role="switch"] ist der korrekte Selektor — aria-checked="true" = ON = 0 Credits
-        ok = await _ensure_unlimited(page, hard_stop_if_not_found=True)
-        if not ok:
-            await browser.close()
-            raise RuntimeError("Unlimited Toggle AUS — würde 4 Credits kosten! Abbruch.")
-
-        # Alle selects/dropdowns loggen (für Debugging)
-        try:
-            selects = page.locator("select, [role='listbox'], [role='combobox'], [role='option']")
-            n_sel = await selects.count()
-            sel_texts = []
-            for i in range(min(n_sel, 10)):
-                t = await selects.nth(i).text_content()
-                if t:
-                    sel_texts.append(t.strip()[:40])
-            log.info(f"🔍 Dropdowns/Selects ({n_sel}): {sel_texts}")
-        except Exception as e:
-            log.warning(f"Select-Debug fehlgeschlagen: {e}")
-
-        # ── Modell auswählen: Kling 2.5 Turbo (bevorzugt) ───────────────────
-        # Aus Logs: Model-Button heißt "ModelSeedance 2.0" (Label + Modellname)
-        # → Erst Model-Button klicken um Dropdown zu öffnen, dann Kling 2.5 wählen
+        # ── ZUERST Modell wählen: Kling 2.5 Turbo ────────────────────────────────
+        # KRITISCH: Der Unlimited-Toggle existiert NUR wenn Kling 2.5 Turbo aktiv ist!
+        # Standard ist Seedance 2.0 → kein Toggle sichtbar → Toggle-Check schlägt fehl.
+        # Reihenfolge: Modell wählen → warten → DANN Toggle prüfen.
         MODEL_BTN_SELECTORS = [
             "button:has-text('Model')",       # "ModelSeedance 2.0" enthält "Model"
             "button:has-text('Seedance')",    # aktueller Default
@@ -638,6 +634,17 @@ async def _generate_video_async(
 
         if not kling_selected:
             log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell (Seedance 2.0) wird verwendet")
+        else:
+            # Nach Kling-Auswahl kurz warten damit UI aktualisiert (Toggle erscheint!)
+            await page.wait_for_timeout(2000)
+
+        # ── Unlimited Toggle — NACH Kling-Auswahl prüfen ─────────────────────
+        # Toggle erscheint NUR mit Kling 2.5 Turbo! Mit Seedance: kein Toggle = 0 Credits nötig?
+        # Nein — mit Kling MUSS Toggle ON sein für 0 Credits.
+        ok = await _ensure_unlimited(page, hard_stop_if_not_found=True)
+        if not ok:
+            await browser.close()
+            raise RuntimeError("Unlimited Toggle AUS — würde 4 Credits kosten! Abbruch.")
 
         # ── ZUERST Bild hochladen (Generate-Button erst danach klickbar!) ──────
         # nth(0) = Start-Frame (Referenz), nth(1) = End-Frame (optional)
