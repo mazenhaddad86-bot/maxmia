@@ -67,21 +67,20 @@ async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: 
     log.info("🔒 TOGGLE-CHECK: Prüfe Unlimited (Nano Banana Pro) vor Generierung...")
 
     TOGGLE_SELECTORS = [
+        # Spezifisch: Unlimited-Toggle (NICHT Multi-shot-Toggle!)
+        # Der Multi-shot-Toggle hat leeren Text, parentText = "Multi-shot"
+        # Der Unlimited-Toggle hat parentText = "Unlimited"
+        'div:has-text("Unlimited") > [role="switch"]',
+        'div:has-text("Unlimited") [role="switch"]',
+        '[aria-label*="unlimited" i]',
+        # Breiter: alle switch-Elemente (prüfen ob context "Unlimited" enthält)
         '[role="switch"]',
         '[data-testid*="toggle"]',
         'button[aria-checked]',
-        '[aria-label*="unlimited" i]',
         'button:has-text("Unlimited")',
         'label:has-text("Unlimited") + button',
-        'input[type="checkbox"]:near(:text("Unlimited"))',
-        'div:has-text("Unlimited") [role="switch"]',
-        # Neue Selektoren für /ai/video Seite
         '[aria-label*="free" i]',
-        'button:has-text("Free")',
         '[data-testid*="free"]',
-        'span:has-text("Unlimited")',
-        '[class*="toggle"]',
-        '[class*="switch"]',
     ]
 
     def _is_on(val_aria: str | None, val_data: str | None) -> bool:
@@ -117,7 +116,31 @@ async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: 
 
             toggle_found = False
             for sel in TOGGLE_SELECTORS:
-                toggle = page.locator(sel).first
+                candidates = page.locator(sel)
+                n_cands = await candidates.count()
+                if n_cands == 0:
+                    continue
+                # Bei mehreren Treffern: den suchen dessen Kontext "Unlimited" enthält
+                # (nicht den "Multi-shot"-Toggle der auch [role="switch"] ist!)
+                toggle = None
+                for ci in range(n_cands):
+                    cand = candidates.nth(ci)
+                    # Kontext-Text des Parents prüfen
+                    try:
+                        ctx_text = await page.evaluate(
+                            "(el) => (el.parentElement?.parentElement?.textContent || '') + (el.parentElement?.textContent || '')",
+                            await cand.element_handle()
+                        )
+                        if "multi-shot" in ctx_text.lower() or "multishot" in ctx_text.lower():
+                            log.debug(f"   ⏭️ Toggle {ci} übersprungen (Multi-shot Kontext): '{ctx_text.strip()[:40]}'")
+                            continue
+                    except Exception:
+                        pass
+                    toggle = cand
+                    break
+                if toggle is None:
+                    toggle = candidates.first  # Fallback: ersten nehmen
+
                 if await toggle.count() > 0:
                     toggle_found = True
                     checked = await toggle.get_attribute("aria-checked")
@@ -163,9 +186,18 @@ async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: 
                     except Exception as e:
                         log.warning(f"   Force-Klick fehlgeschlagen: {e}")
 
-                    # Stufe 3: JavaScript-Klick (umgeht ALLE Playwright-Checks)
+                    # Stufe 3: JavaScript-Klick — nur Unlimited-Toggle (nicht Multi-shot!)
                     try:
-                        await page.evaluate("document.querySelector('[role=\"switch\"]').click()")
+                        await page.evaluate("""
+                            const switches = document.querySelectorAll('[role="switch"]');
+                            for (const sw of switches) {
+                                const ctx = (sw.parentElement?.parentElement?.textContent || '') + (sw.parentElement?.textContent || '');
+                                if (!ctx.toLowerCase().includes('multi-shot') && !ctx.toLowerCase().includes('multishot')) {
+                                    sw.click();
+                                    break;
+                                }
+                            }
+                        """)
                         await page.wait_for_timeout(3000)
                         checked = await toggle.get_attribute("aria-checked")
                         data_state = await toggle.get_attribute("data-state")
@@ -386,9 +418,11 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         except Exception as e:
             log.warning(f"Aspect Ratio fehlgeschlagen: {e}")
 
-        # Prompt eingeben — /ai/image hat KEIN <textarea>, nutzt [role="textbox"] (contenteditable)
+        # Prompt eingeben — /ai/image nutzt [role="textbox"][contenteditable="true"]
+        # WICHTIG: Es gibt mehrere [role="textbox"] auf der Seite (History-Einträge sind read-only).
+        # Nur der mit contenteditable="true" ist das echte Eingabefeld!
         try:
-            box = page.locator("[role='textbox']").first
+            box = page.locator("[role='textbox'][contenteditable='true']").first
             if await box.count() == 0:
                 box = page.locator("textarea").first  # Fallback
             await box.click()
@@ -575,67 +609,100 @@ async def _generate_video_async(
 
         # ── ZUERST Modell wählen: Kling 2.5 Turbo ────────────────────────────────
         # KRITISCH: Der Unlimited-Toggle existiert NUR wenn Kling 2.5 Turbo aktiv ist!
-        # Standard ist Seedance 2.0 → kein Toggle sichtbar → Toggle-Check schlägt fehl.
-        # Reihenfolge: Modell wählen → warten → DANN Toggle prüfen.
-        MODEL_BTN_SELECTORS = [
-            "button:has-text('Model')",       # "ModelSeedance 2.0" enthält "Model"
-            "button:has-text('Seedance')",    # aktueller Default
-            "[aria-label*='model' i]",
-        ]
-        KLING_OPTION_SELECTORS = [
-            "button:has-text('Kling 2.5')",
-            "button:has-text('2.5 Turbo')",
-            "button:has-text('Kling 2.1')",   # Fallback: ältere Kling-Version
-            "button:has-text('Kling 2.0')",
-            "[role='option']:has-text('Kling 2.5')",
-            "[role='option']:has-text('Kling')",
-            "li:has-text('Kling 2.5')",
-            "li:has-text('Kling')",
-            "span:has-text('Kling 2.5')",
-            "[data-value*='kling']",
-        ]
+        # Standard ist Seedance 2.0 → kein Toggle → Credits!
+        #
+        # NEUE UI (2025): Dropdown hat zwei Panels:
+        #   Links: Kategorie-Buttons (Featured / Kling / Google / Wan / ...)
+        #   Rechts: Modelle dieser Kategorie (zum Teil GESCROLLT)
+        # Kling 2.5 Turbo hat "UNLIMITED" Badge und ist im Kling-Panel ganz unten.
+        #
+        # Strategie:
+        #   1. Model-Button klicken → Dropdown öffnet sich
+        #   2. "Kling" Kategorie-Button klicken → rechtes Panel zeigt alle Kling-Modelle
+        #   3. Per JS scrollen bis "Kling 2.5 Turbo" im DOM sichtbar
+        #   4. Klicken → Toggle erscheint
         kling_selected = False
 
-        # Versuche direkt Kling zu finden (falls Dropdown schon offen)
-        for sel in KLING_OPTION_SELECTORS:
-            try:
-                el = page.locator(sel).first
-                if await el.count() > 0:
-                    await el.click(timeout=3000)
-                    await page.wait_for_timeout(800)
-                    log.info(f"✅ Kling Modell ausgewählt (direkt) via '{sel}'")
-                    kling_selected = True
-                    break
-            except Exception:
-                pass
-
-        if not kling_selected:
-            # Model-Button klicken um Dropdown zu öffnen
-            for btn_sel in MODEL_BTN_SELECTORS:
-                try:
-                    btn = page.locator(btn_sel).first
-                    if await btn.count() > 0:
+        async def _select_kling_25_turbo(page) -> bool:
+            """
+            Öffnet das Model-Dropdown, klickt 'Kling'-Kategorie,
+            scrollt bis 'Kling 2.5 Turbo' im DOM erscheint und klickt es.
+            Gibt True zurück wenn erfolgreich.
+            """
+            # Schritt 1: Model-Button öffnen
+            for btn_text in ["Seedance", "Model", "Kling"]:
+                btn = page.locator(f"button:has-text('{btn_text}')").first
+                if await btn.count() > 0:
+                    try:
                         await btn.click(timeout=3000)
-                        await page.wait_for_timeout(800)
-                        log.info(f"🖱️ Model-Dropdown geöffnet via '{btn_sel}'")
-                        # Jetzt Kling-Option suchen
-                        for sel in KLING_OPTION_SELECTORS:
-                            el = page.locator(sel).first
-                            if await el.count() > 0:
-                                await el.click(timeout=3000)
-                                await page.wait_for_timeout(800)
-                                log.info(f"✅ Kling Modell ausgewählt (nach Dropdown) via '{sel}'")
-                                kling_selected = True
-                                break
-                        if kling_selected:
+                        await page.wait_for_timeout(1000)
+                        log.info(f"🖱️ Model-Dropdown geöffnet via 'button:has-text(\"{btn_text}\")'")
+                        break
+                    except Exception:
+                        pass
+
+            # Schritt 2: Prüfen ob Kling 2.5 Turbo schon sichtbar ist
+            kling25 = page.locator("button:has-text('Kling 2.5 Turbo'), button:has-text('Kling 2.5')")
+            if await kling25.count() > 0:
+                await kling25.first.click(timeout=3000)
+                log.info("✅ Kling 2.5 Turbo direkt gefunden + geklickt")
+                return True
+
+            # Schritt 3: "Kling" Kategorie-Button im Dropdown klicken
+            # (linkes Panel des Dropdowns zeigt Anbieter-Kategorien)
+            kling_cat = page.locator("button:has-text('Kling'):not(:has-text('2.')):not(:has-text('Motion')):not(:has-text('Turbo')):not(:has-text('Model'))")
+            if await kling_cat.count() == 0:
+                # Breiter suchen — irgendein "Kling" ohne Versionsnummer
+                all_kling = page.locator("button").filter(has_text="Kling")
+                n = await all_kling.count()
+                for i in range(n):
+                    txt = (await all_kling.nth(i).text_content() or "").strip()
+                    if txt in ("Kling", "Kling "):
+                        try:
+                            await all_kling.nth(i).click(timeout=2000)
+                            log.info(f"🖱️ 'Kling' Kategorie geklickt (idx {i}): '{txt}'")
+                            await page.wait_for_timeout(800)
                             break
-                except Exception as e:
-                    log.warning(f"Model-Dropdown '{btn_sel}' fehlgeschlagen: {e}")
+                        except Exception:
+                            pass
+            else:
+                try:
+                    await kling_cat.first.click(timeout=2000)
+                    log.info("🖱️ 'Kling' Kategorie geklickt")
+                    await page.wait_for_timeout(800)
+                except Exception:
+                    pass
+
+            # Schritt 4: Scrollen im Dropdown bis Kling 2.5 Turbo erscheint
+            for scroll_attempt in range(8):
+                kling25 = page.locator("button:has-text('Kling 2.5 Turbo'), button:has-text('Kling 2.5')")
+                if await kling25.count() > 0:
+                    await kling25.first.scroll_into_view_if_needed()
+                    await kling25.first.click(timeout=3000)
+                    log.info(f"✅ Kling 2.5 Turbo nach {scroll_attempt} Scrolls gefunden + geklickt")
+                    return True
+                # Im Dropdown scrollen (versuche das scrollbare Panel)
+                try:
+                    await page.evaluate("""
+                        const scrollable = document.querySelector('[class*="overflow-y-auto"], [class*="overflow-auto"]');
+                        if (scrollable) scrollable.scrollBy(0, 200);
+                        else window.scrollBy(0, 200);
+                    """)
+                except Exception:
+                    await page.keyboard.press("PageDown")
+                await page.wait_for_timeout(400)
+
+            log.warning("⚠️ Kling 2.5 Turbo nach Scrollen nicht gefunden")
+            return False
+
+        kling_selected = await _select_kling_25_turbo(page)
 
         if not kling_selected:
-            log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — Standard-Modell (Seedance 2.0) wird verwendet")
+            log.warning("⚠️ Kling 2.5 Turbo nicht gefunden — HARD STOP (würde Credits kosten!)")
+            await browser.close()
+            raise RuntimeError("Kling 2.5 Turbo nicht auswählbar — Unlimited Toggle fehlt → Abbruch")
         else:
-            # Nach Kling-Auswahl kurz warten damit UI aktualisiert (Toggle erscheint!)
+            # Nach Kling-Auswahl warten damit UI aktualisiert (Toggle erscheint!)
             await page.wait_for_timeout(2000)
 
         # ── Unlimited Toggle — NACH Kling-Auswahl prüfen ─────────────────────
@@ -677,43 +744,28 @@ async def _generate_video_async(
             log.warning("⚠️ Auflösung nicht gesetzt — Standard bleibt 720p")
 
         # ── Prompt eingeben ───────────────────────────────────────────────────
+        # Video-Seite nutzt [role="textbox"][contenteditable="true"], NICHT <textarea>
         try:
-            box = page.locator("textarea").first
+            box = page.locator("[role='textbox'][contenteditable='true']").first
+            if await box.count() == 0:
+                box = page.locator("textarea").first  # Fallback
             if await box.count() > 0:
-                await box.click(click_count=3)
-                await box.fill(full_prompt)
+                await box.click()
+                await page.wait_for_timeout(200)
+                await box.press("Control+a")
+                await box.press("Delete")
+                await box.type(full_prompt, delay=15)
                 await page.wait_for_timeout(600)
+                log.info(f"✏️ Video-Prompt eingegeben ({len(full_prompt)} Zeichen)")
             else:
-                log.warning("⚠️ Keine textarea gefunden auf Video-Seite")
+                log.warning("⚠️ Kein Textbox-Element auf Video-Seite gefunden")
         except Exception as e:
             log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
-
-        # ── Generate Button ───────────────────────────────────────────────────
-        # DOM bestätigt: button[type="submit"] ist der Generate-Button.
-        # Text = "GenerateUnlimited" wenn Toggle ON, "Generate4" wenn OFF.
-        clicked = False
-        try:
-            btn = page.locator("button[type='submit']").first
-            if await btn.count() > 0:
-                await btn.click(timeout=10000)
-                log.info(f"🎬 Generate geklickt (submit): {prompt[:50]}...")
-                clicked = True
-        except Exception as e:
-            log.warning(f"submit-Button Klick fehlgeschlagen: {e}")
-
-        if not clicked:
-            log.error(f"❌ Generate-Button nicht gefunden!")
-            await browser.close()
-            raise RuntimeError(f"Generate-Button nicht gefunden. Buttons: {btn_texts}")
 
         # ── WICHTIG: Vorhandene Videos snapshotten VOR Generate-Klick ──────────
         # product-to-video.mp4 Demo + alle bereits geladenen Videos IGNORIEREN!
         PLACEHOLDER_URLS = [
-            "product-to-video.mp4",
-            "demo",
-            "placeholder",
-            "sample",
-            "example",
+            "product-to-video.mp4", "demo", "placeholder", "sample", "example",
         ]
         existing_vid_urls: set[str] = set()
         try:
@@ -723,9 +775,37 @@ async def _generate_video_async(
                 src = await pre_vids.nth(i).get_attribute("src")
                 if src:
                     existing_vid_urls.add(src)
-            log.info(f"🎬 {len(existing_vid_urls)} vorhandene Videos auf Seite (werden ignoriert)")
+            log.info(f"🎬 {len(existing_vid_urls)} vorhandene Videos (werden ignoriert)")
         except Exception as e:
             log.warning(f"Snapshot vorhandener Videos fehlgeschlagen: {e}")
+
+        # ── Generate Button — NACH Snapshot klicken! ─────────────────────────
+        clicked = False
+        try:
+            btn = page.locator("button[type='submit']").first
+            if await btn.count() > 0:
+                # Sicherstellen dass Button-Text "Unlimited" enthält (nicht Credits!)
+                btn_text = (await btn.text_content() or "").strip()
+                log.info(f"🔍 Generate-Button Text: '{btn_text}'")
+                if any(x in btn_text.lower() for x in ["unlimited", "free", "∞"]):
+                    log.info("✅ Unlimited bestätigt im Generate-Button!")
+                elif btn_text and any(c.isdigit() for c in btn_text):
+                    credit_num = ''.join(filter(str.isdigit, btn_text))
+                    log.error(f"❌ Generate würde {credit_num} Credits kosten — ABBRUCH!")
+                    await browser.close()
+                    raise RuntimeError(f"Generate-Button zeigt Credits ({credit_num}) — Toggle nicht ON!")
+                await btn.click(timeout=10000)
+                log.info(f"🎬 Generate geklickt: {prompt[:50]}...")
+                clicked = True
+        except RuntimeError:
+            raise
+        except Exception as e:
+            log.warning(f"submit-Button Klick fehlgeschlagen: {e}")
+
+        if not clicked:
+            log.error("❌ Generate-Button nicht gefunden!")
+            await browser.close()
+            raise RuntimeError("Generate-Button nicht gefunden")
 
         # Warten auf ECHTES generiertes Video (max 8 Min)
         # Nur URLs akzeptieren die NACH dem Klick NEU erscheinen und kein Demo/Placeholder sind.
