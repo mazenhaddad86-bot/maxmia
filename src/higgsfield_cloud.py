@@ -412,12 +412,12 @@ def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
             since_dt = datetime.now(timezone.utc) - timedelta(seconds=max_age_seconds + 30)
             since_str = since_dt.strftime("%d-%b-%Y")
 
-            # Suche nach Higgsfield Verification Emails
-            # Subject enthält "verification code" oder From ist noreply@higgsfield.ai
+            # Suche NUR nach Verification-Code-Emails — NICHT Notification-Emails!
+            # "New device signed in" = Benachrichtigung, kein OTP-Code → ÜBERSPRINGEN!
+            # Echter OTP Subject: "504727 is your verification code"
             search_criteria = [
-                f'(FROM "noreply@higgsfield.ai" SINCE {since_str})',
-                f'(FROM "higgsfield" SINCE {since_str})',
                 f'(SUBJECT "verification code" SINCE {since_str})',
+                f'(SUBJECT "is your verification" SINCE {since_str})',
                 f'(SUBJECT "your code" SINCE {since_str})',
             ]
 
@@ -440,9 +440,16 @@ def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
                             continue
                         msg = email_lib.message_from_bytes(msg_data[0][1])
 
-                        # Subject prüfen — z.B. "504727 is your verification code"
                         subject = msg.get("Subject", "")
-                        otp_match = re.search(r"\b(\d{6})\b", subject)
+
+                        # Notification-Emails überspringen (kein OTP drin!)
+                        skip_subjects = ["signed in", "new device", "welcome", "password changed"]
+                        if any(s in subject.lower() for s in skip_subjects):
+                            log.debug(f"   Überspringe Notification-Email: {subject!r}")
+                            continue
+
+                        # OTP aus Subject extrahieren — z.B. "504727 is your verification code"
+                        otp_match = re.search(r"\b([1-9]\d{5})\b", subject)  # 6 Ziffern, keine 000000
 
                         if not otp_match:
                             # Body durchsuchen
@@ -464,10 +471,14 @@ def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
                                     )
                                 except Exception:
                                     pass
-                            otp_match = re.search(r"\b(\d{6})\b", body)
+                            otp_match = re.search(r"\b([1-9]\d{5})\b", body)
 
                         if otp_match:
                             otp = otp_match.group(1)
+                            # Sanity-Check: kein all-zeros, kein offensichtlich falscher Code
+                            if otp == "000000" or len(set(otp)) == 1:
+                                log.debug(f"   Überspringe ungültigen OTP: {otp}")
+                                continue
                             log.info(f"✅ OTP gefunden: {otp} (Subject: {subject[:60]!r})")
                             try:
                                 mail.close()
@@ -476,7 +487,7 @@ def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
                                 pass
                             return otp
                         else:
-                            log.debug(f"   Email gefunden aber kein 6-stelliger Code: {subject!r}")
+                            log.debug(f"   Email gefunden aber kein gültiger 6-stelliger Code: {subject!r}")
                     except Exception as e:
                         log.debug(f"   Fehler beim Lesen von Email {msg_id}: {e}")
 
@@ -638,7 +649,21 @@ async def _login_with_email(page) -> bool:
                 break
         await page.wait_for_timeout(2000)
 
-        await page.wait_for_timeout(3000)
+        # Warte bis OTP-Eingabefeld erscheint (Clerk zeigt es nach Email-Submit)
+        # Timeout 15s — Clerk braucht manchmal etwas länger zum Laden
+        otp_appeared = False
+        try:
+            await page.wait_for_selector(
+                "input[inputmode='numeric'], input[autocomplete='one-time-code'], "
+                "input[type='text'][maxlength='1'], input[type='text'][maxlength='6']",
+                timeout=15000, state="visible"
+            )
+            otp_appeared = True
+            log.info("✅ OTP-Eingabefeld erschienen!")
+        except Exception:
+            log.warning("⚠️ OTP-Feld nach 15s noch nicht sichtbar — versuche trotzdem...")
+
+        await page.wait_for_timeout(2000)
         try:
             await page.screenshot(path="/tmp/hf_login_03_otp_wait.png")
         except Exception:
