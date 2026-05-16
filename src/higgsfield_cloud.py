@@ -291,8 +291,40 @@ async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
     return False
 
 
+# Pfad für gespeicherten Browser-State (inkl. HttpOnly Cookies!)
+# Nach erstem OTP-Login gespeichert → alle weiteren Generierungen nutzen ihn
+STORAGE_STATE_FILE = "/tmp/hf_session_state.json"
+
+
+async def _save_session(ctx) -> None:
+    """Speichert kompletten Browser-State nach Login.
+    Playwright storage_state() erfasst ALLE Cookies inkl. HttpOnly — das sind
+    die echten Clerk-Session-Cookies die document.cookie nie zurückgibt!
+    """
+    try:
+        await ctx.storage_state(path=STORAGE_STATE_FILE)
+        log.info(f"💾 Session gespeichert → {STORAGE_STATE_FILE} (gilt für alle weiteren Generierungen)")
+    except Exception as e:
+        log.warning(f"⚠️ Session speichern fehlgeschlagen: {e}")
+
+
+def _clear_session() -> None:
+    """Löscht gespeicherte Session (z.B. nach Login-Fehler — zwingt neuen OTP-Login)."""
+    try:
+        if Path(STORAGE_STATE_FILE).exists():
+            Path(STORAGE_STATE_FILE).unlink()
+            log.info(f"🗑️ Session-State gelöscht: {STORAGE_STATE_FILE}")
+    except Exception as e:
+        log.warning(f"⚠️ Session löschen fehlgeschlagen: {e}")
+
+
 async def _new_browser_context(p):
-    """Erstellt Browser-Kontext mit Anti-Bot-Stealth und Cookies."""
+    """Erstellt Browser-Kontext mit Anti-Bot-Stealth und Cookies.
+    Priorität:
+    1. Storage State aus /tmp (vollständige Session inkl. HttpOnly — nach OTP-Login)
+    2. HIGGSFIELD_COOKIES Env (base64 JSON — nur non-HttpOnly, schnell ablaufend)
+    3. Kein Cookie → OTP-Login wird ausgelöst
+    """
     browser = await p.chromium.launch(
         headless=False,  # headless=False mit xvfb-run in GitHub Actions
         args=[
@@ -313,7 +345,8 @@ async def _new_browser_context(p):
             "--lang=en-US,en",
         ],
     )
-    ctx = await browser.new_context(
+    # Context-Parameter (gleich für alle Pfade)
+    _ctx_kwargs = dict(
         viewport={"width": 1920, "height": 1080},
         screen={"width": 1920, "height": 1080},
         user_agent=(
@@ -340,7 +373,25 @@ async def _new_browser_context(p):
         },
     )
 
-    # ── Anti-Bot: navigator.webdriver verstecken ──────────────────────────────
+    # ── Priorität 1: Gespeicherte Session (storage_state — enthält HttpOnly Clerk-JWT!) ──
+    # Nach erstem OTP-Login gespeichert via _save_session(ctx).
+    # Playwright storage_state() erfasst ALLE Cookies inkl. HttpOnly — document.cookie hat sie nie!
+    # Clerk Session-JWT (__session Cookie) ist HttpOnly → NUR storage_state gibt ihn zurück.
+    if Path(STORAGE_STATE_FILE).exists():
+        log.info(f"♻️  Session-State geladen: {STORAGE_STATE_FILE} (inkl. HttpOnly Clerk-Cookies)")
+        _ctx_kwargs["storage_state"] = STORAGE_STATE_FILE
+        ctx = await browser.new_context(**_ctx_kwargs)
+    else:
+        # ── Priorität 2: HIGGSFIELD_COOKIES Env (base64 JSON — nur non-HttpOnly) ──
+        ctx = await browser.new_context(**_ctx_kwargs)
+        cookies = _load_cookies()
+        if cookies:
+            await ctx.add_cookies(cookies)
+            log.info(f"🍪 {len(cookies)} Cookies geladen aus HIGGSFIELD_COOKIES")
+        else:
+            log.info("🔑 Keine Session + keine Cookies — OTP-Login wird bei Bedarf ausgelöst")
+
+    # ── Anti-Bot: navigator.webdriver verstecken (immer!) ────────────────────
     # Higgsfield erkennt window.navigator.webdriver = true → Bot-Detection-Block
     await ctx.add_init_script("""
         // navigator.webdriver auf undefined setzen
@@ -368,12 +419,6 @@ async def _new_browser_context(p):
         );
     """)
 
-    cookies = _load_cookies()
-    if cookies:
-        await ctx.add_cookies(cookies)
-        log.info(f"🍪 {len(cookies)} Cookies geladen aus HIGGSFIELD_COOKIES")
-    else:
-        log.info("🔑 Keine Cookies — verwende Email+Password Login")
     return browser, ctx
 
 
@@ -983,8 +1028,16 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         # Login prüfen — automatisch via Email+Password falls nötig
         logged_in = await _ensure_logged_in(page)
         if not logged_in:
+            # Gespeicherte Session war abgelaufen → löschen + beim nächsten Mal neu einloggen
+            _clear_session()
             await browser.close()
-            raise ValueError("Login fehlgeschlagen! HIGGSFIELD_EMAIL + HIGGSFIELD_PASSWORD prüfen.")
+            raise ValueError("Login fehlgeschlagen! HIGGSFIELD_EMAIL + GMAIL_APP_PASSWORD prüfen.")
+
+        # ── Session nach Login speichern ───────────────────────────────────────
+        # storage_state() erfasst ALLE Cookies inkl. HttpOnly Clerk-JWT!
+        # Nächster Aufruf lädt diese Datei → kein OTP-Login mehr nötig (bis JWT abläuft ~60min)
+        # Wird nach JEDEM erfolgreichen Login gespeichert — hält die Session frisch!
+        await _save_session(ctx)
 
         # Nach Login: zur Image-Seite navigieren (Login leitet auf Dashboard um)
         if HIGGSFIELD_IMAGE_URL not in page.url:
@@ -1126,8 +1179,16 @@ async def _generate_video_async(
         # Login prüfen — automatisch via Email+Password falls nötig
         logged_in = await _ensure_logged_in(page)
         if not logged_in:
+            # Gespeicherte Session war abgelaufen → löschen + beim nächsten Mal neu einloggen
+            _clear_session()
             await browser.close()
-            raise ValueError("Login fehlgeschlagen! HIGGSFIELD_EMAIL + HIGGSFIELD_PASSWORD prüfen.")
+            raise ValueError("Login fehlgeschlagen! HIGGSFIELD_EMAIL + GMAIL_APP_PASSWORD prüfen.")
+
+        # ── Session nach Login speichern ───────────────────────────────────────
+        # storage_state() erfasst ALLE Cookies inkl. HttpOnly Clerk-JWT!
+        # Nächster Aufruf lädt diese Datei → kein OTP-Login mehr nötig (bis JWT abläuft ~60min)
+        # Wird nach JEDEM erfolgreichen Login gespeichert — hält die Session frisch!
+        await _save_session(ctx)
 
         # Nach Login: zur Video-Seite navigieren falls umgeleitet
         if HIGGSFIELD_VIDEO_URL not in page.url:
