@@ -626,30 +626,17 @@ async def _login_with_email(page) -> bool:
                 pass
             return False
 
-        # "Continue" Button klicken → OTP Email wird gesendet
-        continue_btn_selectors = [
-            "button:has-text('Continue')",
-            "button:has-text('Send code')",
-            "button:has-text('Get code')",
-            "button[type='submit']",
-            "button:has-text('Next')",
-        ]
-        continue_clicked = False
-        for sel in continue_btn_selectors:
-            btn = page.locator(sel).first
-            if await btn.count() > 0:
-                await btn.click(timeout=5000)
-                log.info(f"🖱️ Continue geklickt via '{sel}' → OTP Email unterwegs...")
-                continue_clicked = True
+        # Enter drücken → OTP Email wird gesendet
+        # WICHTIG: button[type='submit'] NICHT verwenden — das ist der Higgsfield
+        # Generate-Button im Hintergrund, NICHT der Continue-Button im Auth-Modal!
+        # Enter auf dem Email-Feld ist zuverlässiger und trifft immer das richtige.
+        for sel in email_input_selectors:
+            inp = page.locator(sel).first
+            if await inp.count() > 0:
+                await inp.press("Enter")
+                log.info("⌨️ Enter gedrückt auf Email-Feld → OTP Email unterwegs...")
                 break
-
-        if not continue_clicked:
-            log.error("❌ Continue-Button nach Email-Eingabe nicht gefunden!")
-            try:
-                await page.screenshot(path="/tmp/hf_login_no_continue.png")
-            except Exception:
-                pass
-            return False
+        await page.wait_for_timeout(2000)
 
         await page.wait_for_timeout(3000)
         try:
@@ -734,21 +721,18 @@ async def _login_with_email(page) -> bool:
             pass
 
         # ── Schritt 6: OTP Submit ─────────────────────────────────────────────
-        # Bei Clerk wird OTP oft auto-submitted wenn alle 6 Ziffern da sind.
-        # Sicherheitshalber auch explizit klicken.
-        submit_selectors = [
-            "button:has-text('Continue')",
-            "button:has-text('Verify')",
-            "button:has-text('Submit')",
-            "button[type='submit']",
-            "button:has-text('Sign in')",
-        ]
-        for sel in submit_selectors:
-            btn = page.locator(sel).first
-            if await btn.count() > 0:
-                await btn.click(timeout=5000)
-                log.info(f"🖱️ OTP Submit geklickt via '{sel}'")
-                break
+        # Clerk auto-submitted OTP wenn alle 6 Ziffern da sind.
+        # Sicherheitshalber auch Enter drücken (NICHT button[type='submit'] —
+        # das wäre der Higgsfield Generate-Button im Hintergrund!)
+        try:
+            for sel in otp_field_selectors:
+                f = page.locator(sel).first
+                if await f.count() > 0:
+                    await f.press("Enter")
+                    log.info("⌨️ Enter auf OTP-Feld gedrückt")
+                    break
+        except Exception:
+            pass
 
         # Auf Login-Erfolg warten
         await page.wait_for_timeout(8000)
