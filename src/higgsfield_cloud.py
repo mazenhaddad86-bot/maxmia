@@ -38,19 +38,58 @@ def _strip_bom(raw: str) -> str:
 
 
 def _load_cookies() -> list[dict] | None:
-    """Lädt Cookies aus Env-Variable. Gibt None zurück wenn nicht gesetzt."""
+    """
+    Lädt Cookies aus HIGGSFIELD_COOKIES Env-Variable.
+    Unterstützt zwei Formate:
+    - JSON-Array von Cookie-Objekten (alt: aus document.cookie, OHNE HttpOnly)
+    - JSON-Array von Cookie-Objekten via Playwright export_session.py (MIT HttpOnly!)
+
+    Playwright add_cookies() kann HttpOnly-Cookies problemlos setzen —
+    die Einschränkung gilt nur für das Lesen via JavaScript!
+    """
     raw = os.environ.get("HIGGSFIELD_COOKIES", "")
     if not raw:
         return None
     raw = _strip_bom(raw)
+    cookies = None
     try:
         decoded = base64.b64decode(raw + "==")
-        return json.loads(decoded)
+        cookies = json.loads(decoded)
     except Exception:
         try:
-            return json.loads(raw)  # Try plain JSON
+            cookies = json.loads(raw)  # Try plain JSON
         except Exception:
             return None
+
+    if not isinstance(cookies, list):
+        return None
+
+    # Playwright add_cookies() braucht exakt diese Felder — alle anderen ignorieren
+    ALLOWED_FIELDS = {
+        "name", "value", "url", "domain", "path", "secure",
+        "httpOnly", "sameSite", "expires"
+    }
+    cleaned = []
+    for c in cookies:
+        if not isinstance(c, dict) or "name" not in c or "value" not in c:
+            continue
+        clean = {k: v for k, v in c.items() if k in ALLOWED_FIELDS}
+        # sameSite muss "Strict", "Lax" oder "None" sein (nicht "no_restriction" etc.)
+        if "sameSite" in clean:
+            ss = str(clean["sameSite"]).lower()
+            if ss in ("strict",):
+                clean["sameSite"] = "Strict"
+            elif ss in ("lax",):
+                clean["sameSite"] = "Lax"
+            else:
+                clean["sameSite"] = "None"
+        cleaned.append(clean)
+
+    log.info(f"🍪 {len(cleaned)} Cookies geladen aus HIGGSFIELD_COOKIES (inkl. möglicher HttpOnly-Cookies)")
+    httponly_count = sum(1 for c in cleaned if c.get("httpOnly"))
+    if httponly_count:
+        log.info(f"🔒 {httponly_count} davon sind HttpOnly (Clerk JWT enthalten!)")
+    return cleaned if cleaned else None
 
 
 async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: bool = True) -> bool:
@@ -387,7 +426,6 @@ async def _new_browser_context(p):
         cookies = _load_cookies()
         if cookies:
             await ctx.add_cookies(cookies)
-            log.info(f"🍪 {len(cookies)} Cookies geladen aus HIGGSFIELD_COOKIES")
         else:
             log.info("🔑 Keine Session + keine Cookies — OTP-Login wird bei Bedarf ausgelöst")
 
