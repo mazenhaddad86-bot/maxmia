@@ -553,19 +553,74 @@ async def _dismiss_cookie_banner(page) -> None:
                 return
         except Exception:
             pass
-    # Kein Banner gefunden — kein Problem
-    log.debug("🍪 Kein Cookie-Banner gefunden (oder bereits akzeptiert)")
+
+    # JS-Fallback: alle möglichen Banner-Buttons direkt per JS klicken
+    try:
+        clicked = await page.evaluate("""
+            () => {
+                // CookieScript IDs
+                const ids = ['cookiescript_accept', 'cookiescript_accept_all',
+                             'cookiescript_close', 'cookie-accept', 'cookie_accept'];
+                for (const id of ids) {
+                    const el = document.getElementById(id);
+                    if (el) { el.click(); return 'clicked:' + id; }
+                }
+                // Klassen
+                const classes = ['cookiescript_accept', 'cookie-accept', 'js-cookie-accept'];
+                for (const cls of classes) {
+                    const el = document.querySelector('.' + cls);
+                    if (el) { el.click(); return 'clicked:.' + cls; }
+                }
+                // Jeder Button mit "Accept" oder "Agree" im Text
+                const btns = [...document.querySelectorAll('button, a[role="button"]')];
+                for (const btn of btns) {
+                    const t = (btn.textContent || '').trim().toLowerCase();
+                    if (t === 'accept' || t === 'accept all' || t === 'agree' || t === 'got it' || t === 'ok') {
+                        btn.click(); return 'clicked:text=' + t;
+                    }
+                }
+                return null;
+            }
+        """)
+        if clicked:
+            await page.wait_for_timeout(1000)
+            log.info(f"🍪 Cookie-Banner via JS weggeklickt: {clicked}")
+            return
+    except Exception as e:
+        log.debug(f"Cookie-JS-Fallback fehlgeschlagen: {e}")
+
+    log.info("🍪 Kein Cookie-Banner gefunden (oder bereits akzeptiert)")
 
 
 async def _ensure_logged_in(page) -> bool:
     """
-    Prüft ob wir eingeloggt sind. Wenn auf Login-Seite → automatisch einloggen.
+    Prüft ob wir eingeloggt sind. Higgsfield leitet nicht auf /login um —
+    zeigt stattdessen die public Demo-Seite mit "Log in"/"Sign up" Buttons.
+    Deshalb: auf diese Buttons prüfen, NICHT nur URL prüfen.
     Gibt True zurück wenn eingeloggt, sonst False.
     """
     current_url = page.url
+
+    # Check 1: URL enthält login/signin (ältere Flows)
     if "login" in current_url or "signin" in current_url or "auth" in current_url:
-        log.warning(f"⚠️ Nicht eingeloggt (URL: {current_url}) — versuche Email-Login...")
+        log.warning(f"⚠️ Auf Login-Seite (URL: {current_url}) — versuche Email-Login...")
         return await _login_with_email(page)
+
+    # Check 2: "Log in" oder "Sign up" Button sichtbar = nicht eingeloggt
+    # Higgsfield zeigt public Demo-Seite wenn nicht eingeloggt (URL bleibt /ai/image!)
+    try:
+        not_logged_in = page.locator(
+            "a:has-text('Log in'), button:has-text('Log in'), "
+            "a:has-text('Sign up'), button:has-text('Sign up'), "
+            "a:has-text('Login'), button:has-text('Login')"
+        )
+        if await not_logged_in.count() > 0:
+            log.warning(f"⚠️ 'Log in'/'Sign up' Button gefunden — Cookies abgelaufen! Email-Login...")
+            return await _login_with_email(page)
+    except Exception as e:
+        log.warning(f"Login-Check fehlgeschlagen: {e}")
+
+    log.info("✅ Eingeloggt (kein 'Log in' Button sichtbar)")
     return True
 
 
@@ -623,6 +678,8 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             if not ok:
                 await browser.close()
                 raise TimeoutError("Image-Seite nach Login nicht erreichbar")
+            # Cookie-Banner nochmal wegklicken (erscheint nach Login+Navigate neu)
+            await _dismiss_cookie_banner(page)
 
         # Unlimited Toggle MUSS ON sein
         ok = await _ensure_unlimited(page)
@@ -764,6 +821,8 @@ async def _generate_video_async(
             if not ok:
                 await browser.close()
                 raise TimeoutError("Video-Seite nach Login nicht erreichbar")
+            # Cookie-Banner nochmal wegklicken nach Navigate
+            await _dismiss_cookie_banner(page)
 
         # ── SPA braucht Zeit zum Laden ────────────────────────────────────────
         # Nach domcontentloaded sind nur Navbar-Buttons sichtbar (Image/Video/Audio/Search).
