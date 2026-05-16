@@ -377,24 +377,168 @@ async def _new_browser_context(p):
     return browser, ctx
 
 
+def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
+                              max_age_seconds: int = 180, timeout_seconds: int = 90) -> str | None:
+    """
+    Liest Higgsfield OTP Code aus Gmail via IMAP (synchron).
+    Braucht Gmail App Password (NICHT das echte Google-Passwort!).
+    App Password erstellen: myaccount.google.com → Sicherheit → App-Passwörter
+
+    Args:
+        gmail_user: Gmail-Adresse (z.B. makevision1412@gmail.com)
+        gmail_app_password: 16-stelliges Google App-Passwort
+        max_age_seconds: Wie alt darf die Email max. sein (Standard: 3 Min)
+        timeout_seconds: Wie lange warten wir auf neue Email (Standard: 90s)
+    Returns:
+        6-stelliger OTP-Code als String, oder None bei Fehler
+    """
+    import imaplib
+    import email as email_lib
+    import re
+    from datetime import datetime, timezone, timedelta
+
+    log.info(f"📧 Gmail IMAP: Suche Higgsfield OTP für {gmail_user}...")
+    deadline = time.time() + timeout_seconds
+    attempt = 0
+
+    while time.time() < deadline:
+        attempt += 1
+        try:
+            mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)
+            mail.login(gmail_user, gmail_app_password)
+            mail.select("INBOX")
+
+            # Datum vor max_age_seconds
+            since_dt = datetime.now(timezone.utc) - timedelta(seconds=max_age_seconds + 30)
+            since_str = since_dt.strftime("%d-%b-%Y")
+
+            # Suche nach Higgsfield Verification Emails
+            # Subject enthält "verification code" oder From ist noreply@higgsfield.ai
+            search_criteria = [
+                f'(FROM "noreply@higgsfield.ai" SINCE {since_str})',
+                f'(FROM "higgsfield" SINCE {since_str})',
+                f'(SUBJECT "verification code" SINCE {since_str})',
+                f'(SUBJECT "your code" SINCE {since_str})',
+            ]
+
+            all_ids = set()
+            for criteria in search_criteria:
+                try:
+                    _, msgs = mail.search(None, criteria)
+                    if msgs and msgs[0]:
+                        for mid in msgs[0].split():
+                            all_ids.add(mid)
+                except Exception:
+                    pass
+
+            if all_ids:
+                # Neueste Email zuerst prüfen
+                for msg_id in sorted(all_ids, reverse=True):
+                    try:
+                        _, msg_data = mail.fetch(msg_id, "(RFC822)")
+                        if not msg_data or not msg_data[0] or not isinstance(msg_data[0], tuple):
+                            continue
+                        msg = email_lib.message_from_bytes(msg_data[0][1])
+
+                        # Subject prüfen — z.B. "504727 is your verification code"
+                        subject = msg.get("Subject", "")
+                        otp_match = re.search(r"\b(\d{6})\b", subject)
+
+                        if not otp_match:
+                            # Body durchsuchen
+                            body = ""
+                            if msg.is_multipart():
+                                for part in msg.walk():
+                                    ct = part.get_content_type()
+                                    if ct in ("text/plain", "text/html"):
+                                        try:
+                                            body += part.get_payload(decode=True).decode(
+                                                "utf-8", errors="replace"
+                                            )
+                                        except Exception:
+                                            pass
+                            else:
+                                try:
+                                    body = msg.get_payload(decode=True).decode(
+                                        "utf-8", errors="replace"
+                                    )
+                                except Exception:
+                                    pass
+                            otp_match = re.search(r"\b(\d{6})\b", body)
+
+                        if otp_match:
+                            otp = otp_match.group(1)
+                            log.info(f"✅ OTP gefunden: {otp} (Subject: {subject[:60]!r})")
+                            try:
+                                mail.close()
+                                mail.logout()
+                            except Exception:
+                                pass
+                            return otp
+                        else:
+                            log.debug(f"   Email gefunden aber kein 6-stelliger Code: {subject!r}")
+                    except Exception as e:
+                        log.debug(f"   Fehler beim Lesen von Email {msg_id}: {e}")
+
+            else:
+                elapsed = int(time.time() - (deadline - timeout_seconds))
+                log.info(f"📧 Keine Higgsfield Email (Versuch {attempt}, {elapsed}s/{timeout_seconds}s)...")
+
+            try:
+                mail.close()
+                mail.logout()
+            except Exception:
+                pass
+
+        except imaplib.IMAP4.error as e:
+            log.error(f"❌ Gmail IMAP Login fehlgeschlagen: {e}")
+            log.error("❌ Tipp: App Password erstellen auf myaccount.google.com → Sicherheit → App-Passwörter")
+            return None
+        except Exception as e:
+            log.warning(f"⚠️ Gmail IMAP Versuch {attempt} fehlgeschlagen: {e}")
+
+        # 5 Sekunden warten bevor nächster Versuch
+        time.sleep(5)
+
+    log.error(f"❌ OTP Timeout: Keine Higgsfield Email nach {timeout_seconds}s gefunden!")
+    return None
+
+
 async def _login_with_email(page) -> bool:
     """
-    Loggt sich via Email+Password in Higgsfield ein.
-    Credentials kommen aus Env-Variablen HIGGSFIELD_EMAIL + HIGGSFIELD_PASSWORD.
-    Gibt True zurück wenn Login erfolgreich, sonst False.
-    """
-    email = os.environ.get("HIGGSFIELD_EMAIL", "").strip()
-    password = os.environ.get("HIGGSFIELD_PASSWORD", "").strip()
+    Loggt sich via Email OTP (Magic Link / Verification Code) in Higgsfield ein.
+    Higgsfield nutzt Clerk Auth mit Email OTP — kein Passwort-Login!
 
-    if not email or not password:
-        log.error("❌ HIGGSFIELD_EMAIL oder HIGGSFIELD_PASSWORD nicht gesetzt!")
+    Flow:
+    1. Login-Button klicken → Auth-Dialog öffnet sich
+    2. "Continue with Email" klicken
+    3. Email eingeben → "Continue" klicken
+    4. Higgsfield sendet 6-stelligen OTP Code per Email
+    5. Gmail IMAP: OTP automatisch lesen (braucht GMAIL_APP_PASSWORD Secret!)
+    6. OTP in Feld eingeben → Submit → eingeloggt!
+
+    Env Vars:
+      HIGGSFIELD_EMAIL    — Higgsfield-Konto Email
+      GMAIL_APP_PASSWORD  — Google App Password (16-stellig) für Gmail IMAP
+                           Erstellen: myaccount.google.com → Sicherheit → App-Passwörter
+    """
+    hf_email = os.environ.get("HIGGSFIELD_EMAIL", "").strip()
+    gmail_app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+
+    if not hf_email:
+        log.error("❌ HIGGSFIELD_EMAIL nicht gesetzt!")
         return False
 
-    log.info(f"🔑 Login mit Email: {email[:20]}...")
+    if not gmail_app_password:
+        log.error("❌ GMAIL_APP_PASSWORD nicht gesetzt! OTP kann nicht automatisch gelesen werden.")
+        log.error("❌ App Password erstellen: myaccount.google.com → Sicherheit → App-Passwörter")
+        log.error("❌ Dann als GitHub Secret GMAIL_APP_PASSWORD eintragen!")
+        return False
+
+    log.info(f"🔑 Higgsfield Login via Email OTP: {hf_email}")
 
     try:
-        # Schritt 1: Login-Button im Navbar anklicken (statt /login direkt — 404!)
-        # Higgsfield hat keinen /login Endpunkt — Login-Button öffnet Auth-Modal/Seite
+        # ── Schritt 1: Login-Button im Navbar finden und klicken ─────────────
         login_nav_selectors = [
             "a:has-text('Login')", "button:has-text('Login')",
             "a:has-text('Log in')", "button:has-text('Log in')",
@@ -411,97 +555,209 @@ async def _login_with_email(page) -> bool:
                 break
 
         if not login_btn_found:
-            # Fallback: direkte URLs probieren
-            for login_url in [
-                "https://higgsfield.ai/auth/login",
-                "https://higgsfield.ai/auth/signin",
-                "https://higgsfield.ai/signin",
-                "https://higgsfield.ai/login",
-            ]:
-                await page.goto(login_url, wait_until="domcontentloaded", timeout=30_000)
-                await page.wait_for_timeout(2000)
-                if "404" not in await page.title() and "not found" not in (await page.title()).lower():
-                    log.info(f"🔑 Login-Seite via URL: {login_url}")
-                    break
-
-        # Screenshot für Debugging
-        try:
-            await page.screenshot(path="/tmp/hf_login_page.png")
-        except Exception:
-            pass
-
-        # ── GOOGLE OAuth Flow (bevorzugt — Higgsfield hat kein Passwort-Login!) ──
-        # Higgsfield = Email-OTP (nicht automatisierbar) ODER Google OAuth
-        # Wir nutzen Google OAuth mit email+password
-        google_btn = page.locator(
-            "button:has-text('Continue with Google'), a:has-text('Continue with Google'), "
-            "button:has-text('Google'), [data-provider='google']"
-        ).first
-        if await google_btn.count() > 0:
-            log.info("🔑 Google OAuth — klicke 'Continue with Google'...")
-            await google_btn.click(timeout=5000)
-            await page.wait_for_timeout(3000)
-
-            # Screenshot nach Google-Klick
-            try:
-                await page.screenshot(path="/tmp/hf_google_oauth.png")
-            except Exception:
-                pass
-
-            # Google Login-Seite: Email eingeben
-            google_email = page.locator("input[type='email'], input[id='identifierId']").first
-            if await google_email.count() > 0:
-                await google_email.fill(email)
-                log.info("✏️ Google-Email eingegeben")
-                await page.wait_for_timeout(500)
-
-                # "Weiter" / "Next" klicken
-                for sel in ["button:has-text('Next')", "button:has-text('Weiter')",
-                            "#identifierNext", "button[type='submit']"]:
-                    btn = page.locator(sel).first
-                    if await btn.count() > 0:
-                        await btn.click(timeout=3000)
-                        log.info(f"🖱️ Google Next geklickt via '{sel}'")
+            log.warning("⚠️ Login-Button nicht in Navbar — versuche direkte URL...")
+            for login_url in ["https://higgsfield.ai/auth/login", "https://higgsfield.ai/signin"]:
+                try:
+                    await page.goto(login_url, wait_until="domcontentloaded", timeout=30_000)
+                    await page.wait_for_timeout(2000)
+                    title = await page.title()
+                    if "404" not in title and "not found" not in title.lower():
+                        log.info(f"🔑 Login-Seite via URL: {login_url}")
+                        login_btn_found = True
                         break
-                await page.wait_for_timeout(3000)
+                except Exception:
+                    pass
 
-                # Google Passwort-Seite
-                pwd_input = page.locator("input[type='password'], input[name='password']").first
-                if await pwd_input.count() > 0:
-                    await pwd_input.fill(password)
-                    log.info("✏️ Google-Passwort eingegeben")
-                    await page.wait_for_timeout(500)
-
-                    for sel in ["button:has-text('Next')", "button:has-text('Weiter')",
-                                "#passwordNext", "button[type='submit']"]:
-                        btn = page.locator(sel).first
-                        if await btn.count() > 0:
-                            await btn.click(timeout=3000)
-                            log.info(f"🖱️ Google Passwort-Submit geklickt")
-                            break
-                    await page.wait_for_timeout(5000)
-                else:
-                    log.warning("⚠️ Google Passwort-Feld nicht gefunden — evtl. 2FA oder CAPTCHA")
-            else:
-                log.warning("⚠️ Google Email-Feld nicht gefunden")
-
-            # Screenshot nach Google-Login-Versuch
-            try:
-                await page.screenshot(path="/tmp/hf_google_after.png")
-            except Exception:
-                pass
-
-        # Warten auf erfolgreichen Login — kein "Login"/"Sign up" Button mehr sichtbar
-        log.info("⏳ Warte auf Login-Erfolg (bis zu 30s)...")
-        await page.wait_for_timeout(5000)
-
-        # Screenshot nach Login-Versuch
         try:
-            await page.screenshot(path="/tmp/hf_login_after.png")
+            await page.screenshot(path="/tmp/hf_login_01_page.png")
         except Exception:
             pass
 
-        # Prüfen ob "Login"/"Sign up" Button noch da ist
+        # ── Schritt 2: "Continue with Email" klicken (nicht Google!) ─────────
+        # Clerk Auth zeigt 2 Optionen: "Continue with Google" und "Continue with Email"
+        email_btn_selectors = [
+            "button:has-text('Continue with Email')",
+            "button:has-text('Email')",
+            "a:has-text('Continue with Email')",
+            "[data-provider='email']",
+            "button:has-text('Use email')",
+        ]
+        email_btn_found = False
+        for sel in email_btn_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                await btn.click(timeout=5000)
+                await page.wait_for_timeout(2000)
+                log.info(f"🖱️ 'Continue with Email' geklickt via '{sel}'")
+                email_btn_found = True
+                break
+
+        if not email_btn_found:
+            log.warning("⚠️ 'Continue with Email' Button nicht gefunden — eventuell direkt Email-Feld?")
+
+        try:
+            await page.screenshot(path="/tmp/hf_login_02_email_page.png")
+        except Exception:
+            pass
+
+        # ── Schritt 3: Email in Feld eingeben ────────────────────────────────
+        email_input_selectors = [
+            "input[type='email']",
+            "input[name='email']",
+            "input[id='email']",
+            "input[placeholder*='email' i]",
+            "input[autocomplete='email']",
+        ]
+        email_entered = False
+        for sel in email_input_selectors:
+            inp = page.locator(sel).first
+            if await inp.count() > 0:
+                await inp.fill(hf_email)
+                await page.wait_for_timeout(300)
+                log.info(f"✏️ Email eingegeben: {hf_email}")
+                email_entered = True
+                break
+
+        if not email_entered:
+            log.error("❌ Email-Eingabefeld nicht gefunden!")
+            try:
+                await page.screenshot(path="/tmp/hf_login_no_email_field.png")
+            except Exception:
+                pass
+            return False
+
+        # "Continue" Button klicken → OTP Email wird gesendet
+        continue_btn_selectors = [
+            "button:has-text('Continue')",
+            "button:has-text('Send code')",
+            "button:has-text('Get code')",
+            "button[type='submit']",
+            "button:has-text('Next')",
+        ]
+        continue_clicked = False
+        for sel in continue_btn_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                await btn.click(timeout=5000)
+                log.info(f"🖱️ Continue geklickt via '{sel}' → OTP Email unterwegs...")
+                continue_clicked = True
+                break
+
+        if not continue_clicked:
+            log.error("❌ Continue-Button nach Email-Eingabe nicht gefunden!")
+            try:
+                await page.screenshot(path="/tmp/hf_login_no_continue.png")
+            except Exception:
+                pass
+            return False
+
+        await page.wait_for_timeout(3000)
+        try:
+            await page.screenshot(path="/tmp/hf_login_03_otp_wait.png")
+        except Exception:
+            pass
+
+        # ── Schritt 4: OTP Code aus Gmail lesen ──────────────────────────────
+        log.info("📧 Warte auf Higgsfield OTP Email in Gmail (max. 90s)...")
+        otp_code = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: _get_otp_from_gmail_sync(hf_email, gmail_app_password,
+                                              max_age_seconds=180, timeout_seconds=90)
+        )
+
+        if not otp_code:
+            log.error("❌ OTP Code nicht aus Gmail gelesen — GMAIL_APP_PASSWORD korrekt?")
+            try:
+                await page.screenshot(path="/tmp/hf_login_otp_failed.png")
+            except Exception:
+                pass
+            return False
+
+        log.info(f"✅ OTP Code erhalten: {otp_code}")
+
+        # ── Schritt 5: OTP Code eingeben ─────────────────────────────────────
+        otp_field_selectors = [
+            # Clerk OTP Input: 6 einzelne Felder oder ein kombiniertes Feld
+            "input[inputmode='numeric']",
+            "input[pattern='[0-9]*']",
+            "input[autocomplete='one-time-code']",
+            "input[type='text'][maxlength='6']",
+            "input[type='number']",
+            "input[name*='code' i]",
+            "input[placeholder*='code' i]",
+            "input[placeholder*='OTP' i]",
+        ]
+
+        otp_entered = False
+        for sel in otp_field_selectors:
+            fields = page.locator(sel)
+            n = await fields.count()
+            if n == 0:
+                continue
+
+            if n == 1:
+                # Einzelnes kombiniertes OTP-Feld (z.B. maxlength="6")
+                field = fields.first
+                await field.click()
+                await page.wait_for_timeout(200)
+                await field.fill(otp_code)
+                log.info(f"✏️ OTP in einzelnes Feld eingegeben via '{sel}'")
+                otp_entered = True
+                break
+            elif n == 6:
+                # 6 einzelne Felder (Clerk standard)
+                for i, digit in enumerate(otp_code[:6]):
+                    await fields.nth(i).fill(digit)
+                    await page.wait_for_timeout(50)
+                log.info(f"✏️ OTP in 6 einzelne Felder eingegeben")
+                otp_entered = True
+                break
+            else:
+                # Unbekannte Anzahl — alles in erstes Feld eingeben
+                await fields.first.fill(otp_code)
+                log.info(f"✏️ OTP in erstes von {n} Feldern eingegeben via '{sel}'")
+                otp_entered = True
+                break
+
+        if not otp_entered:
+            log.error("❌ OTP-Eingabefeld nicht gefunden!")
+            try:
+                await page.screenshot(path="/tmp/hf_login_no_otp_field.png")
+            except Exception:
+                pass
+            return False
+
+        await page.wait_for_timeout(500)
+        try:
+            await page.screenshot(path="/tmp/hf_login_04_otp_entered.png")
+        except Exception:
+            pass
+
+        # ── Schritt 6: OTP Submit ─────────────────────────────────────────────
+        # Bei Clerk wird OTP oft auto-submitted wenn alle 6 Ziffern da sind.
+        # Sicherheitshalber auch explizit klicken.
+        submit_selectors = [
+            "button:has-text('Continue')",
+            "button:has-text('Verify')",
+            "button:has-text('Submit')",
+            "button[type='submit']",
+            "button:has-text('Sign in')",
+        ]
+        for sel in submit_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                await btn.click(timeout=5000)
+                log.info(f"🖱️ OTP Submit geklickt via '{sel}'")
+                break
+
+        # Auf Login-Erfolg warten
+        await page.wait_for_timeout(8000)
+        try:
+            await page.screenshot(path="/tmp/hf_login_05_after_otp.png")
+        except Exception:
+            pass
+
+        # ── Prüfen ob eingeloggt ──────────────────────────────────────────────
         still_not_logged = page.locator(
             "a:has-text('Login'), button:has-text('Login'), "
             "a:has-text('Log in'), button:has-text('Log in'), "
@@ -511,7 +767,7 @@ async def _login_with_email(page) -> bool:
             log.error(f"❌ Login fehlgeschlagen — 'Login'/'Sign up' Button noch sichtbar. URL: {page.url}")
             return False
 
-        log.info(f"✅ Higgsfield Login erfolgreich! URL: {page.url}")
+        log.info(f"✅ Higgsfield Login erfolgreich via Email OTP! URL: {page.url}")
         return True
 
     except Exception as e:

@@ -53,8 +53,10 @@ jobs:
         env:
           # Email+Password Login (bevorzugt — Cookies laufen ab, Credentials nicht)
           HIGGSFIELD_EMAIL: ${{ secrets.HIGGSFIELD_EMAIL }}
-          HIGGSFIELD_PASSWORD: ${{ secrets.HIGGSFIELD_PASSWORD }}
-          # Cookies-Fallback (optional — wird ignoriert wenn Email+Password gesetzt)
+          # GMAIL_APP_PASSWORD = Google App Password (16-stellig) für automatisches OTP-Lesen
+          # Erstellen: myaccount.google.com → Sicherheit → App-Passwörter → "Mail" → Erstellen
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # Cookies-Fallback (optional — reduziert Login-Häufigkeit)
           HIGGSFIELD_COOKIES: ${{ secrets.HIGGSFIELD_COOKIES }}
           SUNO_EMAIL: ${{ secrets.SUNO_EMAIL }}
           SUNO_PASSWORD: ${{ secrets.SUNO_PASSWORD }}
