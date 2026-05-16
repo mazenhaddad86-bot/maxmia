@@ -430,81 +430,66 @@ async def _login_with_email(page) -> bool:
         except Exception:
             pass
 
-        # "Continue with Email" Button klicken (falls Auth-Modal geöffnet)
-        email_btn_selectors = [
-            "button:has-text('Continue with Email')",
-            "button:has-text('Continue with email')",
-            "button:has-text('Email')",
-            "a:has-text('Continue with Email')",
-            "[data-provider='email']",
-        ]
-        email_btn_clicked = False
-        for sel in email_btn_selectors:
-            btn = page.locator(sel).first
-            if await btn.count() > 0:
-                await btn.click(timeout=5000)
-                await page.wait_for_timeout(1500)
-                log.info(f"🖱️ 'Continue with Email' geklickt via '{sel}'")
-                email_btn_clicked = True
-                break
+        # ── GOOGLE OAuth Flow (bevorzugt — Higgsfield hat kein Passwort-Login!) ──
+        # Higgsfield = Email-OTP (nicht automatisierbar) ODER Google OAuth
+        # Wir nutzen Google OAuth mit email+password
+        google_btn = page.locator(
+            "button:has-text('Continue with Google'), a:has-text('Continue with Google'), "
+            "button:has-text('Google'), [data-provider='google']"
+        ).first
+        if await google_btn.count() > 0:
+            log.info("🔑 Google OAuth — klicke 'Continue with Google'...")
+            await google_btn.click(timeout=5000)
+            await page.wait_for_timeout(3000)
 
-        if not email_btn_clicked:
-            log.info("ℹ️ Kein 'Continue with Email' — versuche direkt Email-Feld")
-
-        # Email + Password eingeben
-        await page.wait_for_timeout(1000)
-
-        # Email-Feld
-        email_input = page.locator("input[type='email'], input[name='email'], input[placeholder*='email' i]").first
-        if await email_input.count() == 0:
-            log.error("❌ Email-Input-Feld nicht gefunden!")
+            # Screenshot nach Google-Klick
             try:
-                await page.screenshot(path="/tmp/hf_login_no_email_field.png")
+                await page.screenshot(path="/tmp/hf_google_oauth.png")
             except Exception:
                 pass
-            return False
 
-        await email_input.click()
-        await email_input.fill(email)
-        log.info("✏️ Email eingegeben")
-        await page.wait_for_timeout(500)
+            # Google Login-Seite: Email eingeben
+            google_email = page.locator("input[type='email'], input[id='identifierId']").first
+            if await google_email.count() > 0:
+                await google_email.fill(email)
+                log.info("✏️ Google-Email eingegeben")
+                await page.wait_for_timeout(500)
 
-        # Password-Feld
-        pwd_input = page.locator("input[type='password'], input[name='password']").first
-        if await pwd_input.count() == 0:
-            log.error("❌ Password-Input-Feld nicht gefunden!")
+                # "Weiter" / "Next" klicken
+                for sel in ["button:has-text('Next')", "button:has-text('Weiter')",
+                            "#identifierNext", "button[type='submit']"]:
+                    btn = page.locator(sel).first
+                    if await btn.count() > 0:
+                        await btn.click(timeout=3000)
+                        log.info(f"🖱️ Google Next geklickt via '{sel}'")
+                        break
+                await page.wait_for_timeout(3000)
+
+                # Google Passwort-Seite
+                pwd_input = page.locator("input[type='password'], input[name='password']").first
+                if await pwd_input.count() > 0:
+                    await pwd_input.fill(password)
+                    log.info("✏️ Google-Passwort eingegeben")
+                    await page.wait_for_timeout(500)
+
+                    for sel in ["button:has-text('Next')", "button:has-text('Weiter')",
+                                "#passwordNext", "button[type='submit']"]:
+                        btn = page.locator(sel).first
+                        if await btn.count() > 0:
+                            await btn.click(timeout=3000)
+                            log.info(f"🖱️ Google Passwort-Submit geklickt")
+                            break
+                    await page.wait_for_timeout(5000)
+                else:
+                    log.warning("⚠️ Google Passwort-Feld nicht gefunden — evtl. 2FA oder CAPTCHA")
+            else:
+                log.warning("⚠️ Google Email-Feld nicht gefunden")
+
+            # Screenshot nach Google-Login-Versuch
             try:
-                await page.screenshot(path="/tmp/hf_login_no_pwd_field.png")
+                await page.screenshot(path="/tmp/hf_google_after.png")
             except Exception:
                 pass
-            return False
-
-        await pwd_input.click()
-        await pwd_input.fill(password)
-        log.info("✏️ Passwort eingegeben")
-        await page.wait_for_timeout(500)
-
-        # Submit-Button klicken
-        submit_selectors = [
-            "input[type='submit']",
-            "button[type='submit']",
-            "button:has-text('Sign in')",
-            "button:has-text('Log in')",
-            "button:has-text('Continue')",
-        ]
-        submit_clicked = False
-        for sel in submit_selectors:
-            btn = page.locator(sel).first
-            if await btn.count() > 0:
-                await btn.click(timeout=5000)
-                log.info(f"🖱️ Submit geklickt via '{sel}'")
-                submit_clicked = True
-                break
-
-        if not submit_clicked:
-            # Fallback: Enter drücken
-            await pwd_input.press("Enter")
-            log.info("🖱️ Enter gedrückt (Submit-Fallback)")
 
         # Warten auf erfolgreichen Login — kein "Login"/"Sign up" Button mehr sichtbar
         log.info("⏳ Warte auf Login-Erfolg (bis zu 30s)...")
