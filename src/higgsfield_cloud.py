@@ -966,6 +966,23 @@ async def _ensure_logged_in(page) -> bool:
         log.warning(f"⚠️ Auf Login-Seite (URL: {current_url}) — versuche Email-Login...")
         return await _login_with_email(page)
 
+    # ── Clerk Session-Refresh abwarten ────────────────────────────────────────
+    # Clerk JWT (__session) ist kurzlebig (5 Min). Beim Laden der Seite refresht
+    # Clerk's JS den JWT via __client_uat automatisch — aber das braucht ~5-15s!
+    # Wir warten bis entweder UserButton ODER Login-Button erscheint (max 20s).
+    log.info("⏳ Warte auf Clerk Session-Initialisierung (max 20s)...")
+    try:
+        await page.wait_for_selector(
+            '.cl-userButtonAvatarBox, [aria-label="Open user button"], '
+            '[class*="userButton"], [class*="UserButton"], '
+            "a:has-text('Login'), button:has-text('Login'), "
+            "a:has-text('Sign Up'), button:has-text('Sign Up')",
+            timeout=20000, state="attached"
+        )
+        log.info("✅ Clerk-Element erschienen — prüfe Login-Status...")
+    except Exception:
+        log.warning("⚠️ Kein Clerk-Element nach 20s — prüfe trotzdem...")
+
     try:
         # ── Check 1: POSITIV — Clerk UserButton (Avatar) sichtbar? ──────────
         # Clerk rendert ein UserButton-Element wenn eingeloggt:
