@@ -393,9 +393,36 @@ async def _login_with_email(page) -> bool:
     log.info(f"🔑 Login mit Email: {email[:20]}...")
 
     try:
-        # Zur Login-Seite navigieren
-        await page.goto("https://higgsfield.ai/login", wait_until="domcontentloaded", timeout=60_000)
-        await page.wait_for_timeout(3000)
+        # Schritt 1: Login-Button im Navbar anklicken (statt /login direkt — 404!)
+        # Higgsfield hat keinen /login Endpunkt — Login-Button öffnet Auth-Modal/Seite
+        login_nav_selectors = [
+            "a:has-text('Login')", "button:has-text('Login')",
+            "a:has-text('Log in')", "button:has-text('Log in')",
+            "a[href*='login']", "a[href*='signin']",
+        ]
+        login_btn_found = False
+        for sel in login_nav_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                await btn.click(timeout=5000)
+                await page.wait_for_timeout(3000)
+                log.info(f"🖱️ Login-Button geklickt via '{sel}' — URL: {page.url}")
+                login_btn_found = True
+                break
+
+        if not login_btn_found:
+            # Fallback: direkte URLs probieren
+            for login_url in [
+                "https://higgsfield.ai/auth/login",
+                "https://higgsfield.ai/auth/signin",
+                "https://higgsfield.ai/signin",
+                "https://higgsfield.ai/login",
+            ]:
+                await page.goto(login_url, wait_until="domcontentloaded", timeout=30_000)
+                await page.wait_for_timeout(2000)
+                if "404" not in await page.title() and "not found" not in (await page.title()).lower():
+                    log.info(f"🔑 Login-Seite via URL: {login_url}")
+                    break
 
         # Screenshot für Debugging
         try:
@@ -403,9 +430,10 @@ async def _login_with_email(page) -> bool:
         except Exception:
             pass
 
-        # "Continue with Email" Button klicken
+        # "Continue with Email" Button klicken (falls Auth-Modal geöffnet)
         email_btn_selectors = [
             "button:has-text('Continue with Email')",
+            "button:has-text('Continue with email')",
             "button:has-text('Email')",
             "a:has-text('Continue with Email')",
             "[data-provider='email']",
@@ -421,7 +449,7 @@ async def _login_with_email(page) -> bool:
                 break
 
         if not email_btn_clicked:
-            log.warning("⚠️ 'Continue with Email' nicht gefunden — versuche direkt Email-Feld")
+            log.info("ℹ️ Kein 'Continue with Email' — versuche direkt Email-Feld")
 
         # Email + Password eingeben
         await page.wait_for_timeout(1000)
@@ -478,34 +506,27 @@ async def _login_with_email(page) -> bool:
             await pwd_input.press("Enter")
             log.info("🖱️ Enter gedrückt (Submit-Fallback)")
 
-        # Warten auf Redirect nach eingeloggtem Bereich
-        log.info("⏳ Warte auf Login-Redirect...")
+        # Warten auf erfolgreichen Login — kein "Login"/"Sign up" Button mehr sichtbar
+        log.info("⏳ Warte auf Login-Erfolg (bis zu 30s)...")
+        await page.wait_for_timeout(5000)
+
+        # Screenshot nach Login-Versuch
         try:
-            await page.wait_for_url(
-                lambda url: "login" not in url and "signin" not in url,
-                timeout=30_000
-            )
-            log.info(f"✅ Login erfolgreich! URL: {page.url}")
+            await page.screenshot(path="/tmp/hf_login_after.png")
         except Exception:
-            # Evtl. 2FA oder anderes — Screenshot machen
-            try:
-                await page.screenshot(path="/tmp/hf_login_timeout.png")
-            except Exception:
-                pass
-            current_url = page.url
-            if "login" in current_url or "signin" in current_url:
-                log.error(f"❌ Login fehlgeschlagen — noch auf Login-Seite: {current_url}")
-                return False
+            pass
 
-        await page.wait_for_timeout(2000)
-
-        # Prüfen ob wir wirklich eingeloggt sind
-        current_url = page.url
-        if "login" in current_url or "signin" in current_url:
-            log.error(f"❌ Login fehlgeschlagen — noch auf {current_url}")
+        # Prüfen ob "Login"/"Sign up" Button noch da ist
+        still_not_logged = page.locator(
+            "a:has-text('Login'), button:has-text('Login'), "
+            "a:has-text('Log in'), button:has-text('Log in'), "
+            "a:has-text('Sign up'), button:has-text('Sign up')"
+        )
+        if await still_not_logged.count() > 0:
+            log.error(f"❌ Login fehlgeschlagen — 'Login'/'Sign up' Button noch sichtbar. URL: {page.url}")
             return False
 
-        log.info(f"✅ Higgsfield Login erfolgreich — eingeloggt als {email}")
+        log.info(f"✅ Higgsfield Login erfolgreich! URL: {page.url}")
         return True
 
     except Exception as e:
