@@ -93,9 +93,18 @@ async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: 
     for attempt in range(1, max_retries + 1):
         log.info(f"🔒 Toggle-Versuch {attempt}/{max_retries}...")
         try:
-            # Seite etwas Zeit geben (besonders bei Versuch 2+)
+            # Versuch 1: Warten bis Seite vollständig geladen (SPA React-Rendering)
+            if attempt == 1:
+                # Warte auf irgendeinen Button auf der Seite (React hat gerendert)
+                try:
+                    await page.wait_for_selector("button", timeout=10000)
+                    await page.wait_for_timeout(3000)  # Noch etwas mehr für Toggle
+                    log.info("   ⏳ SPA-Buttons sichtbar — prüfe Toggle...")
+                except Exception:
+                    log.warning("   ⚠️ Keine Buttons nach 10s — Seite nicht geladen?")
+            # Versuch 2+: Längere Wartezeit
             if attempt > 1:
-                await page.wait_for_timeout(3000)
+                await page.wait_for_timeout(5000)
 
             # ── Schritt 0: Overlays/Modals wegräumen ─────────────────────────
             # Playwright in Xvfb: manchmal blockiert ein Overlay den Toggle-Klick
@@ -272,7 +281,8 @@ async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
         try:
             # domcontentloaded ist viel schneller als networkidle
             await page.goto(url, wait_until="domcontentloaded", timeout=90_000)
-            await page.wait_for_timeout(2000)
+            # React-SPA braucht Zeit zum Rendern — 5s statt 2s
+            await page.wait_for_timeout(5000)
             return True
         except Exception as e:
             log.warning(f"goto Versuch {attempt+1}/{retries} fehlgeschlagen: {e}")

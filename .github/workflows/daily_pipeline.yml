@@ -81,4 +81,5 @@ jobs:
           path: |
             output/*/jobs.json
             output/*/*.mp4
+            /tmp/hf_*.png
           retention-days: 7
