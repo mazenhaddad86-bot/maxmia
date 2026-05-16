@@ -51,6 +51,10 @@ jobs:
 
       - name: Run pipeline
         env:
+          # Email+Password Login (bevorzugt — Cookies laufen ab, Credentials nicht)
+          HIGGSFIELD_EMAIL: ${{ secrets.HIGGSFIELD_EMAIL }}
+          HIGGSFIELD_PASSWORD: ${{ secrets.HIGGSFIELD_PASSWORD }}
+          # Cookies-Fallback (optional — wird ignoriert wenn Email+Password gesetzt)
           HIGGSFIELD_COOKIES: ${{ secrets.HIGGSFIELD_COOKIES }}
           SUNO_EMAIL: ${{ secrets.SUNO_EMAIL }}
           SUNO_PASSWORD: ${{ secrets.SUNO_PASSWORD }}

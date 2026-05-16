@@ -1,7 +1,7 @@
 """
 Higgsfield Cloud Browser Automation
 Läuft in GitHub Actions via xvfb (virtuelles Display)
-Authentifizierung via Cookies aus GitHub Secret
+Authentifizierung: Email+Password Login (bevorzugt) ODER Cookies-Fallback
 Toggle ON = Bilder + Videos KOSTENLOS (Nano Banana Pro)
 """
 from __future__ import annotations
@@ -37,16 +37,20 @@ def _strip_bom(raw: str) -> str:
     return raw
 
 
-def _load_cookies() -> list[dict]:
+def _load_cookies() -> list[dict] | None:
+    """Lädt Cookies aus Env-Variable. Gibt None zurück wenn nicht gesetzt."""
     raw = os.environ.get("HIGGSFIELD_COOKIES", "")
     if not raw:
-        raise ValueError("HIGGSFIELD_COOKIES not set in environment")
+        return None
     raw = _strip_bom(raw)
     try:
         decoded = base64.b64decode(raw + "==")
         return json.loads(decoded)
     except Exception:
-        return json.loads(raw)  # Try plain JSON
+        try:
+            return json.loads(raw)  # Try plain JSON
+        except Exception:
+            return None
 
 
 async def _ensure_unlimited(page, max_retries: int = 3, hard_stop_if_not_found: bool = True) -> bool:
@@ -355,8 +359,164 @@ async def _new_browser_context(p):
     """)
 
     cookies = _load_cookies()
-    await ctx.add_cookies(cookies)
+    if cookies:
+        await ctx.add_cookies(cookies)
+        log.info(f"🍪 {len(cookies)} Cookies geladen aus HIGGSFIELD_COOKIES")
+    else:
+        log.info("🔑 Keine Cookies — verwende Email+Password Login")
     return browser, ctx
+
+
+async def _login_with_email(page) -> bool:
+    """
+    Loggt sich via Email+Password in Higgsfield ein.
+    Credentials kommen aus Env-Variablen HIGGSFIELD_EMAIL + HIGGSFIELD_PASSWORD.
+    Gibt True zurück wenn Login erfolgreich, sonst False.
+    """
+    email = os.environ.get("HIGGSFIELD_EMAIL", "").strip()
+    password = os.environ.get("HIGGSFIELD_PASSWORD", "").strip()
+
+    if not email or not password:
+        log.error("❌ HIGGSFIELD_EMAIL oder HIGGSFIELD_PASSWORD nicht gesetzt!")
+        return False
+
+    log.info(f"🔑 Login mit Email: {email[:20]}...")
+
+    try:
+        # Zur Login-Seite navigieren
+        await page.goto("https://higgsfield.ai/login", wait_until="domcontentloaded", timeout=60_000)
+        await page.wait_for_timeout(3000)
+
+        # Screenshot für Debugging
+        try:
+            await page.screenshot(path="/tmp/hf_login_page.png")
+        except Exception:
+            pass
+
+        # "Continue with Email" Button klicken
+        email_btn_selectors = [
+            "button:has-text('Continue with Email')",
+            "button:has-text('Email')",
+            "a:has-text('Continue with Email')",
+            "[data-provider='email']",
+        ]
+        email_btn_clicked = False
+        for sel in email_btn_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                await btn.click(timeout=5000)
+                await page.wait_for_timeout(1500)
+                log.info(f"🖱️ 'Continue with Email' geklickt via '{sel}'")
+                email_btn_clicked = True
+                break
+
+        if not email_btn_clicked:
+            log.warning("⚠️ 'Continue with Email' nicht gefunden — versuche direkt Email-Feld")
+
+        # Email + Password eingeben
+        await page.wait_for_timeout(1000)
+
+        # Email-Feld
+        email_input = page.locator("input[type='email'], input[name='email'], input[placeholder*='email' i]").first
+        if await email_input.count() == 0:
+            log.error("❌ Email-Input-Feld nicht gefunden!")
+            try:
+                await page.screenshot(path="/tmp/hf_login_no_email_field.png")
+            except Exception:
+                pass
+            return False
+
+        await email_input.click()
+        await email_input.fill(email)
+        log.info("✏️ Email eingegeben")
+        await page.wait_for_timeout(500)
+
+        # Password-Feld
+        pwd_input = page.locator("input[type='password'], input[name='password']").first
+        if await pwd_input.count() == 0:
+            log.error("❌ Password-Input-Feld nicht gefunden!")
+            try:
+                await page.screenshot(path="/tmp/hf_login_no_pwd_field.png")
+            except Exception:
+                pass
+            return False
+
+        await pwd_input.click()
+        await pwd_input.fill(password)
+        log.info("✏️ Passwort eingegeben")
+        await page.wait_for_timeout(500)
+
+        # Submit-Button klicken
+        submit_selectors = [
+            "input[type='submit']",
+            "button[type='submit']",
+            "button:has-text('Sign in')",
+            "button:has-text('Log in')",
+            "button:has-text('Continue')",
+        ]
+        submit_clicked = False
+        for sel in submit_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                await btn.click(timeout=5000)
+                log.info(f"🖱️ Submit geklickt via '{sel}'")
+                submit_clicked = True
+                break
+
+        if not submit_clicked:
+            # Fallback: Enter drücken
+            await pwd_input.press("Enter")
+            log.info("🖱️ Enter gedrückt (Submit-Fallback)")
+
+        # Warten auf Redirect nach eingeloggtem Bereich
+        log.info("⏳ Warte auf Login-Redirect...")
+        try:
+            await page.wait_for_url(
+                lambda url: "login" not in url and "signin" not in url,
+                timeout=30_000
+            )
+            log.info(f"✅ Login erfolgreich! URL: {page.url}")
+        except Exception:
+            # Evtl. 2FA oder anderes — Screenshot machen
+            try:
+                await page.screenshot(path="/tmp/hf_login_timeout.png")
+            except Exception:
+                pass
+            current_url = page.url
+            if "login" in current_url or "signin" in current_url:
+                log.error(f"❌ Login fehlgeschlagen — noch auf Login-Seite: {current_url}")
+                return False
+
+        await page.wait_for_timeout(2000)
+
+        # Prüfen ob wir wirklich eingeloggt sind
+        current_url = page.url
+        if "login" in current_url or "signin" in current_url:
+            log.error(f"❌ Login fehlgeschlagen — noch auf {current_url}")
+            return False
+
+        log.info(f"✅ Higgsfield Login erfolgreich — eingeloggt als {email}")
+        return True
+
+    except Exception as e:
+        log.error(f"❌ Login-Exception: {e}")
+        try:
+            await page.screenshot(path="/tmp/hf_login_exception.png")
+        except Exception:
+            pass
+        return False
+
+
+async def _ensure_logged_in(page) -> bool:
+    """
+    Prüft ob wir eingeloggt sind. Wenn auf Login-Seite → automatisch einloggen.
+    Gibt True zurück wenn eingeloggt, sonst False.
+    """
+    current_url = page.url
+    if "login" in current_url or "signin" in current_url or "auth" in current_url:
+        log.warning(f"⚠️ Nicht eingeloggt (URL: {current_url}) — versuche Email-Login...")
+        return await _login_with_email(page)
+    return True
 
 
 async def _apply_stealth(page) -> None:
@@ -398,9 +558,18 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             await browser.close()
             raise TimeoutError("higgsfield.ai nicht erreichbar nach 3 Versuchen")
 
-        if "login" in page.url or "signin" in page.url:
+        # Login prüfen — automatisch via Email+Password falls nötig
+        logged_in = await _ensure_logged_in(page)
+        if not logged_in:
             await browser.close()
-            raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
+            raise ValueError("Login fehlgeschlagen! HIGGSFIELD_EMAIL + HIGGSFIELD_PASSWORD prüfen.")
+
+        # Nach Login: zur Image-Seite navigieren (Login leitet auf Dashboard um)
+        if HIGGSFIELD_IMAGE_URL not in page.url:
+            ok = await _goto_with_retry(page, HIGGSFIELD_IMAGE_URL)
+            if not ok:
+                await browser.close()
+                raise TimeoutError("Image-Seite nach Login nicht erreichbar")
 
         # Unlimited Toggle MUSS ON sein
         ok = await _ensure_unlimited(page)
@@ -527,9 +696,18 @@ async def _generate_video_async(
             await browser.close()
             raise TimeoutError("higgsfield.ai/video nicht erreichbar nach 3 Versuchen")
 
-        if "login" in page.url or "signin" in page.url:
+        # Login prüfen — automatisch via Email+Password falls nötig
+        logged_in = await _ensure_logged_in(page)
+        if not logged_in:
             await browser.close()
-            raise ValueError("Nicht eingeloggt! HIGGSFIELD_COOKIES erneuern.")
+            raise ValueError("Login fehlgeschlagen! HIGGSFIELD_EMAIL + HIGGSFIELD_PASSWORD prüfen.")
+
+        # Nach Login: zur Video-Seite navigieren falls umgeleitet
+        if HIGGSFIELD_VIDEO_URL not in page.url:
+            ok = await _goto_with_retry(page, HIGGSFIELD_VIDEO_URL)
+            if not ok:
+                await browser.close()
+                raise TimeoutError("Video-Seite nach Login nicht erreichbar")
 
         # ── SPA braucht Zeit zum Laden ────────────────────────────────────────
         # Nach domcontentloaded sind nur Navbar-Buttons sichtbar (Image/Video/Audio/Search).
