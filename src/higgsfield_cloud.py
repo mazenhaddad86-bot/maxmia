@@ -517,6 +517,46 @@ async def _login_with_email(page) -> bool:
         return False
 
 
+async def _dismiss_cookie_banner(page) -> None:
+    """
+    Schließt Cookie-Consent-Banner (CookieScript, OneTrust, etc.).
+    MUSS nach jeder Navigation aufgerufen werden — sonst überdeckt Banner den Toggle!
+    CookieScript: class='mdc-checkbox__native-control cookiescrip'
+    """
+    COOKIE_ACCEPT_SELECTORS = [
+        # CookieScript spezifisch
+        "#cookiescript_accept",
+        "#cookiescript_accept_all",
+        ".cookiescript_accept",
+        "[id*='cookiescript'][id*='accept']",
+        "[class*='cookiescript'][class*='accept']",
+        # OneTrust
+        "#onetrust-accept-btn-handler",
+        ".onetrust-accept-btn-handler",
+        # Allgemeine Accept-Buttons
+        "button:has-text('Accept All')",
+        "button:has-text('Accept all')",
+        "button:has-text('Accept Cookies')",
+        "button:has-text('Accept')",
+        "button:has-text('Agree')",
+        "button:has-text('Got it')",
+        "button:has-text('OK')",
+        "[aria-label*='accept' i][aria-label*='cookie' i]",
+    ]
+    for sel in COOKIE_ACCEPT_SELECTORS:
+        try:
+            el = page.locator(sel).first
+            if await el.count() > 0:
+                await el.click(timeout=3000)
+                await page.wait_for_timeout(1000)
+                log.info(f"🍪 Cookie-Banner weggeklickt via '{sel}'")
+                return
+        except Exception:
+            pass
+    # Kein Banner gefunden — kein Problem
+    log.debug("🍪 Kein Cookie-Banner gefunden (oder bereits akzeptiert)")
+
+
 async def _ensure_logged_in(page) -> bool:
     """
     Prüft ob wir eingeloggt sind. Wenn auf Login-Seite → automatisch einloggen.
@@ -567,6 +607,9 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         if not ok:
             await browser.close()
             raise TimeoutError("higgsfield.ai nicht erreichbar nach 3 Versuchen")
+
+        # Cookie-Banner wegklicken (blockiert sonst Toggle + Generate!)
+        await _dismiss_cookie_banner(page)
 
         # Login prüfen — automatisch via Email+Password falls nötig
         logged_in = await _ensure_logged_in(page)
@@ -705,6 +748,9 @@ async def _generate_video_async(
         if not ok:
             await browser.close()
             raise TimeoutError("higgsfield.ai/video nicht erreichbar nach 3 Versuchen")
+
+        # Cookie-Banner wegklicken (blockiert sonst Toggle + Model-Auswahl!)
+        await _dismiss_cookie_banner(page)
 
         # Login prüfen — automatisch via Email+Password falls nötig
         logged_in = await _ensure_logged_in(page)
