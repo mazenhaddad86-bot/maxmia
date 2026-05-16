@@ -840,33 +840,76 @@ async def _dismiss_cookie_banner(page) -> None:
 
 async def _ensure_logged_in(page) -> bool:
     """
-    Prüft ob wir eingeloggt sind. Higgsfield leitet nicht auf /login um —
-    zeigt stattdessen die public Demo-Seite mit "Log in"/"Sign up" Buttons.
-    Deshalb: auf diese Buttons prüfen, NICHT nur URL prüfen.
-    Gibt True zurück wenn eingeloggt, sonst False.
+    Prüft ob wir eingeloggt sind. Higgsfield leitet NICHT auf /login um —
+    zeigt stattdessen die public Demo-Seite (URL bleibt /ai/image!).
+
+    3-stufige Erkennung:
+    1. POSITIV: Clerk UserButton (Avatar) sichtbar → eingeloggt
+    2. NEGATIV: Login/Sign-Up Buttons sichtbar → ausgeloggt (case-insensitiv!)
+    3. FALLBACK: Prompt-Textarea fehlt → Demo-Seite → ausgeloggt
+
+    WICHTIG: button:has-text() ist CASE-SENSITIV in Playwright!
+    Higgsfield zeigt "Sign Up" (großes U) — deshalb BEIDE Varianten prüfen!
     """
     current_url = page.url
 
-    # Check 1: URL enthält login/signin (ältere Flows)
+    # Check 0: URL enthält login/signin (ältere Flows)
     if "login" in current_url or "signin" in current_url or "auth" in current_url:
         log.warning(f"⚠️ Auf Login-Seite (URL: {current_url}) — versuche Email-Login...")
         return await _login_with_email(page)
 
-    # Check 2: "Log in" oder "Sign up" Button sichtbar = nicht eingeloggt
-    # Higgsfield zeigt public Demo-Seite wenn nicht eingeloggt (URL bleibt /ai/image!)
     try:
+        # ── Check 1: POSITIV — Clerk UserButton (Avatar) sichtbar? ──────────
+        # Clerk rendert ein UserButton-Element wenn eingeloggt:
+        # class="cl-userButtonAvatarBox" oder aria-label="Open user button"
+        clerk_user = page.locator(
+            '.cl-userButtonAvatarBox, '
+            '[aria-label="Open user button"], '
+            '[data-localization-key="userButton.action__signOut"], '
+            '[class*="userButton"], [class*="UserButton"]'
+        )
+        if await clerk_user.count() > 0:
+            log.info("✅ Eingeloggt (Clerk UserButton sichtbar)")
+            return True
+
+        # ── Check 2: NEGATIV — Login/SignUp Buttons sichtbar? ───────────────
+        # ACHTUNG: Playwright has-text() ist case-sensitiv!
+        # Higgsfield nutzt "Sign Up" (großes U), nicht "Sign up" (kleines u)!
+        # Deshalb ALLE Varianten auflisten:
         not_logged_in = page.locator(
             "a:has-text('Log in'), button:has-text('Log in'), "
+            "a:has-text('Log In'), button:has-text('Log In'), "
+            "a:has-text('Login'), button:has-text('Login'), "
+            "a:has-text('Sign in'), button:has-text('Sign in'), "
+            "a:has-text('Sign In'), button:has-text('Sign In'), "
             "a:has-text('Sign up'), button:has-text('Sign up'), "
-            "a:has-text('Login'), button:has-text('Login')"
+            "a:has-text('Sign Up'), button:has-text('Sign Up')"   # ← Higgsfield nutzt das!
         )
         if await not_logged_in.count() > 0:
-            log.warning(f"⚠️ 'Log in'/'Sign up' Button gefunden — Cookies abgelaufen! Email-Login...")
+            btn_text = await not_logged_in.first.text_content()
+            log.warning(f"⚠️ Login-Button gefunden: {btn_text!r} — Cookies abgelaufen! Email-Login...")
             return await _login_with_email(page)
+
+        # ── Check 3: FALLBACK — Prompt-Textarea sichtbar? ───────────────────
+        # Eingeloggte User sehen contenteditable Textarea für Prompts.
+        # Demo-Seite zeigt "START CREATING WITH NANO BANANA PRO" statt Textarea!
+        prompt_box = page.locator(
+            "[role='textbox'][contenteditable='true'], "
+            "textarea[placeholder], "
+            "div[contenteditable='true']"
+        )
+        if await prompt_box.count() == 0:
+            log.warning("⚠️ Kein Prompt-Textarea auf Seite — Demo-Modus? Versuche Login...")
+            try:
+                await page.screenshot(path="/tmp/hf_no_textarea.png")
+            except Exception:
+                pass
+            return await _login_with_email(page)
+
     except Exception as e:
         log.warning(f"Login-Check fehlgeschlagen: {e}")
 
-    log.info("✅ Eingeloggt (kein 'Log in' Button sichtbar)")
+    log.info("✅ Eingeloggt (Clerk UserButton oder Textarea vorhanden)")
     return True
 
 
