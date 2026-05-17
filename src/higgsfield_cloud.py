@@ -15,7 +15,7 @@ from pathlib import Path
 
 log = logging.getLogger("higgsfield_cloud")
 
-HIGGSFIELD_IMAGE_URL = "https://higgsfield.ai/ai/image"   # /image redirects to public landing!
+HIGGSFIELD_IMAGE_URL = "https://higgsfield.ai/ai/image?model=nano-banana-pro"  # model=nano-banana-pro MUSS gesetzt sein!
 HIGGSFIELD_VIDEO_URL = "https://higgsfield.ai/ai/video"   # /video redirects too
 
 CHAR_PROMPT = (
