@@ -1230,7 +1230,7 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
                 log.info(f"✏️ Prompt eingegeben ({len(full_prompt)} Zeichen): '{typed_val[:60]}...'")
                 prompt_entered = True
             else:
-                log.warning(f"⚠️ box.type hat scheinbar nicht funktioniert — Inhalt: {typed_val!r[:80]}")
+                log.warning(f"⚠️ box.type hat scheinbar nicht funktioniert — Inhalt: {repr(typed_val)[:80]}")
                 # Stufe 4: JS insertText (Clipboard-Methode als letzter Ausweg)
                 try:
                     await page.evaluate(
@@ -1251,7 +1251,7 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
                         log.info(f"✏️ Prompt via JS-execCommand eingegeben: '{typed_val2[:60]}...'")
                         prompt_entered = True
                     else:
-                        log.error(f"❌ JS-execCommand gescheitert — Inhalt immer noch: {typed_val2!r[:80]}")
+                        log.error(f"❌ JS-execCommand gescheitert — Inhalt immer noch: {repr(typed_val2)[:80]}")
                 except Exception as e4:
                     log.error(f"❌ JS-execCommand Exception: {e4}")
         except Exception as e:
