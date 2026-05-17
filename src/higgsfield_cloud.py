@@ -455,6 +455,13 @@ async def _new_browser_context(p):
         // Chrome-Objekt simulieren (Automation hat es manchmal nicht)
         window.chrome = { runtime: {} };
 
+        // Page Visibility API: immer 'visible' melden
+        // Higgsfield pausiert UI-Updates wenn Tab als 'hidden' gilt!
+        // In xvfb ohne echten Monitor kann visibilityState 'hidden' sein.
+        Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
+        Object.defineProperty(document, 'hidden', { get: () => false });
+        document.addEventListener('visibilitychange', (e) => { e.stopImmediatePropagation(); }, true);
+
         // Permissions-API patchen (Automation hat andere Werte)
         const originalQuery = window.navigator.permissions.query;
         window.navigator.permissions.query = (parameters) => (
@@ -1163,103 +1170,95 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             log.warning(f"Aspect Ratio fehlgeschlagen: {e}")
 
         # ── Toast-Overlay wegwarten BEVOR Textbox geklickt wird ─────────────────
-        # Nach Toggle ON erscheint Higgsfield-Toast: "Unlimited runs go to the standard queue."
-        # Dieser Toast hat data-overlay-container="true" — sein Subtree fängt ALLE Pointer-Events ab!
-        # Textbox-Klick schlägt fehl mit: "intercepts pointer events" → 30s Timeout → Exception
-        # FIX: Toast warten bis weg (max 15s), dann Klick.
         log.info("⏳ Warte auf Toast-Verschwinden (max 15s)...")
         try:
-            # Warte bis der Toast-Text aus dem DOM verschwindet
             await page.wait_for_selector(
                 'span:has-text("Unlimited runs go to the standard queue")',
                 state="detached",
                 timeout=15000
             )
-            log.info("✅ Toast verschwunden — Textbox ist jetzt klickbar")
+            log.info("✅ Toast verschwunden")
         except Exception:
-            # Toast war bereits weg ODER nach 15s noch da → trotzdem versuchen
-            log.info("ℹ️ Toast nicht mehr sichtbar (oder Timeout) — Klick versuchen")
-
-        # Nochmal Escape drücken — schließt evtl. verbleibende Overlays
+            log.info("ℹ️ Toast nicht sichtbar — weiter")
         try:
             await page.keyboard.press("Escape")
             await page.wait_for_timeout(300)
         except Exception:
             pass
 
-        # Prompt eingeben — /ai/image nutzt [role="textbox"][contenteditable="true"]
-        # WICHTIG: Es gibt mehrere [role="textbox"] auf der Seite (History-Einträge sind read-only).
-        # Nur der mit contenteditable="true" ist das echte Eingabefeld!
-        # FALLBACK-KASKADE: normaler Klick → force=True → JS-focus → JS-insertText
+        # ── Prompt eingeben via execCommand (React-kompatibel!) ──────────────
+        # KRITISCH: box.type() schreibt Text in den DOM, aber React's interner State
+        # bekommt KEIN InputEvent → React denkt das Feld ist leer → Generate sendet
+        # leeren Prompt → Server antwortet "Something goes wrong"!
+        #
+        # FIX: document.execCommand('insertText') feuert ECHTES InputEvent das
+        # React's onChange handler triggert → React State = Prompt-Text → API OK!
         prompt_entered = False
         try:
+            # Box finden und fokussieren
             box = page.locator("[role='textbox'][contenteditable='true']").first
             if await box.count() == 0:
-                box = page.locator("textarea").first  # Fallback
+                box = page.locator("textarea").first
 
-            # Stufe 1: normaler Klick
+            # Klick mit Fallback
             try:
                 await box.click(timeout=5000)
-                log.info("🖱️ Textbox: normaler Klick erfolgreich")
-            except Exception as e1:
-                log.warning(f"Textbox normaler Klick fehlgeschlagen: {e1}")
-                # Stufe 2: force=True Klick (umgeht Overlay-Interception)
+            except Exception:
                 try:
                     await box.click(force=True, timeout=3000)
-                    log.info("🖱️ Textbox: force-Klick erfolgreich")
-                except Exception as e2:
-                    log.warning(f"Textbox force-Klick fehlgeschlagen: {e2}")
-                    # Stufe 3: JS-Focus direkt auf Element
-                    try:
-                        handle = await box.element_handle()
-                        if handle:
-                            await page.evaluate("(el) => { el.focus(); el.click(); }", handle)
-                            log.info("🖱️ Textbox: JS-focus/click erfolgreich")
-                    except Exception as e3:
-                        log.warning(f"Textbox JS-focus fehlgeschlagen: {e3}")
-
+                except Exception:
+                    pass
             await page.wait_for_timeout(300)
-            # Alten Inhalt löschen und neuen eingeben
+
+            # Alten Inhalt löschen via Ctrl+A + Delete
             await box.press("Control+a")
+            await page.wait_for_timeout(100)
             await box.press("Delete")
-            await box.type(full_prompt, delay=20)
-            await page.wait_for_timeout(600)
-            # Verify: hat der Text tatsächlich reingeschrieben?
+            await page.wait_for_timeout(100)
+
+            # ── PRIMÄR: execCommand('insertText') — feuert echtes InputEvent! ──
+            # React's onChange wird getriggert → State korrekt gesetzt!
+            inserted = await page.evaluate(
+                """(text) => {
+                    const el = document.querySelector('[role="textbox"][contenteditable="true"]')
+                           || document.querySelector('textarea');
+                    if (!el) return false;
+                    el.focus();
+                    // Sicherstellen dass Feld leer ist
+                    document.execCommand('selectAll');
+                    document.execCommand('delete');
+                    // insertText feuert InputEvent → React sieht den neuen Text!
+                    const ok = document.execCommand('insertText', false, text);
+                    return ok;
+                }""",
+                full_prompt
+            )
+            await page.wait_for_timeout(500)
+
+            # Verify: Text im DOM UND React-State korrekt?
             typed_val = await box.text_content()
             if typed_val and len(typed_val.strip()) > 10:
-                log.info(f"✏️ Prompt eingegeben ({len(full_prompt)} Zeichen): '{typed_val[:60]}...'")
+                log.info(f"✏️ Prompt via execCommand eingegeben ({len(typed_val.strip())} Zeichen): '{typed_val[:60]}...'")
+                log.info(f"   execCommand returned: {inserted}")
                 prompt_entered = True
             else:
-                log.warning(f"⚠️ box.type hat scheinbar nicht funktioniert — Inhalt: {repr(typed_val)[:80]}")
-                # Stufe 4: JS insertText (Clipboard-Methode als letzter Ausweg)
-                try:
-                    await page.evaluate(
-                        """(args) => {
-                            const el = document.querySelector('[role="textbox"][contenteditable="true"]');
-                            if (el) {
-                                el.focus();
-                                document.execCommand('selectAll');
-                                document.execCommand('delete');
-                                document.execCommand('insertText', false, args.text);
-                            }
-                        }""",
-                        {"text": full_prompt}
-                    )
-                    await page.wait_for_timeout(400)
-                    typed_val2 = await box.text_content()
-                    if typed_val2 and len(typed_val2.strip()) > 10:
-                        log.info(f"✏️ Prompt via JS-execCommand eingegeben: '{typed_val2[:60]}...'")
-                        prompt_entered = True
-                    else:
-                        log.error(f"❌ JS-execCommand gescheitert — Inhalt immer noch: {repr(typed_val2)[:80]}")
-                except Exception as e4:
-                    log.error(f"❌ JS-execCommand Exception: {e4}")
+                log.warning(f"⚠️ execCommand gescheitert (val={repr(typed_val)[:60]}) — Fallback box.type()...")
+                # FALLBACK: box.type() — langsamer aber zuverlässiger
+                await box.press("Control+a")
+                await box.press("Delete")
+                await box.type(full_prompt, delay=15)
+                await page.wait_for_timeout(500)
+                typed_val2 = await box.text_content()
+                if typed_val2 and len(typed_val2.strip()) > 10:
+                    log.info(f"✏️ Prompt via box.type() eingegeben ({len(typed_val2.strip())} Zeichen)")
+                    prompt_entered = True
+                else:
+                    log.error(f"❌ Beide Methoden gescheitert — Inhalt: {repr(typed_val2)[:80]}")
         except Exception as e:
             log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
 
         if not prompt_entered:
-            log.error("❌ PROMPT KONNTE NICHT EINGEGEBEN WERDEN — Generate wird OHNE Prompt geklickt!")
-            log.error("❌ Dies führt zu einer Fehlgenerierung. Screenshot für Diagnose:")
+            log.error("❌ PROMPT KONNTE NICHT EINGEGEBEN WERDEN!")
             try:
                 await page.screenshot(path="/tmp/hf_prompt_failed.png")
             except Exception:
@@ -1336,14 +1335,15 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
 
         def _on_response(response) -> None:
             url = response.url
+            # API-Fehler loggen — zeigt warum "Something goes wrong" erscheint
+            if response.status >= 400 and "higgsfield" in url:
+                log.warning(f"🚨 API-Fehler {response.status}: {url[:100]}")
             if (response.status == 200
                     and url.startswith("https://")
                     and url not in existing_urls
                     and len(url) > 50):
                 ct = response.headers.get("content-type", "")
-                # image/* akzeptieren; aber NICHT svg/ico/favicon
                 is_image = ct.startswith("image/") and not ct.startswith("image/svg") and not ct.startswith("image/x-icon")
-                # Auch octet-stream wenn URL nach Bild aussieht
                 is_octet_image = ct == "application/octet-stream" and any(
                     ext in url.lower() for ext in (".jpg", ".jpeg", ".png", ".webp")
                 )
@@ -1377,6 +1377,24 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
                 if btn_disabled is not None:
                     log.warning(f"⚠️ Button ist disabled — überspringe '{gen_sel}'")
                     continue
+                # ── Mouse-Simulation VOR Klick (Anti-Bot!) ────────────────────
+                # Higgsfield trackt Mouse-Events — ein Browser der direkt ohne
+                # Mouse-Bewegung klickt wird als Bot erkannt!
+                try:
+                    btn_box = await btn.bounding_box()
+                    if btn_box:
+                        cx = btn_box["x"] + btn_box["width"] / 2
+                        cy = btn_box["y"] + btn_box["height"] / 2
+                        # Maus in 5 Schritten zum Button bewegen (menschlicher!)
+                        await page.mouse.move(cx - 100, cy - 50)
+                        await page.wait_for_timeout(80)
+                        await page.mouse.move(cx - 50, cy - 20)
+                        await page.wait_for_timeout(60)
+                        await page.mouse.move(cx, cy, steps=3)
+                        await page.wait_for_timeout(100)
+                        log.info(f"🖱️ Maus zu Button bewegt ({cx:.0f},{cy:.0f}) — Anti-Bot OK")
+                except Exception as me:
+                    log.debug(f"Mouse-Move fehlgeschlagen (ignoriert): {me}")
                 await btn.click(timeout=10000)
                 log.info(f"🎨 Generate geklickt ({gen_sel}) — warte auf NEUES Bild: {prompt[:60]}...")
                 generate_clicked = True
