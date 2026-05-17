@@ -1265,36 +1265,97 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             except Exception:
                 pass
 
-        # ── Vorhandene Bilder snapshotten VOR Generate-Klick ─────────────────
-        # Snapshotten ALLE https:// img-URLs (breit — CDN kann sich ändern!)
-        existing_urls: set[str] = set()
-        try:
-            pre_imgs = page.locator("img[src^='https://']")
-            pre_count = await pre_imgs.count()
-            for i in range(pre_count):
-                src = await pre_imgs.nth(i).get_attribute("src")
-                if src:
-                    existing_urls.add(src)
-            log.info(f"📸 {len(existing_urls)} vorhandene Bilder gesnapshottert (werden ignoriert)")
-        except Exception as e:
-            log.warning(f"Snapshot vorhandener Bilder fehlgeschlagen: {e}")
+        # ── Vorhandene URLs snapshotten VOR Generate-Klick ───────────────────
+        # Higgsfield rendert generierte Bilder als CSS background-image in <div>-Containern,
+        # NICHT als <img src="...">! Deshalb snapshotten wir ALLE URL-Quellen:
+        #   1. img[src]  — klassische Bild-Tags
+        #   2. CSS background-image in style-Attributen
+        #   3. data-src / srcset — lazy loading
+        # Das selbe gilt für die Suche nach neuen Bildern nach Generate!
 
-        # ── Methode 1: Netzwerk-Interception (zuverlässigste Methode) ─────────
-        # Fängt die CDN-Antwort ab BEVOR sie im DOM erscheint.
-        # Higgsfield kann CDN wechseln — wir fangen alle image/- Responses ab!
+        async def _collect_all_image_urls(page) -> set[str]:
+            """Sammelt ALLE Bild-URLs aus dem DOM — img, CSS backgrounds, data-src."""
+            urls: set[str] = set()
+            try:
+                collected = await page.evaluate("""
+                    () => {
+                        const urls = new Set();
+                        // 1. Alle <img src>
+                        for (const img of document.querySelectorAll('img[src]')) {
+                            const s = img.getAttribute('src');
+                            if (s && s.startsWith('https://') && s.length > 50) urls.add(s);
+                        }
+                        // 2. Alle <img srcset> — nimm ersten Kandidaten
+                        for (const img of document.querySelectorAll('img[srcset]')) {
+                            const parts = img.getAttribute('srcset').split(',');
+                            for (const p of parts) {
+                                const s = p.trim().split(' ')[0];
+                                if (s && s.startsWith('https://') && s.length > 50) urls.add(s);
+                            }
+                        }
+                        // 3. data-src (lazy loading)
+                        for (const el of document.querySelectorAll('[data-src]')) {
+                            const s = el.getAttribute('data-src');
+                            if (s && s.startsWith('https://') && s.length > 50) urls.add(s);
+                        }
+                        // 4. CSS background-image in style-Attributen
+                        for (const el of document.querySelectorAll('[style*="background"]')) {
+                            const m = el.getAttribute('style').match(/url\\(["']?(https[^"')]+)/g);
+                            if (m) for (const match of m) {
+                                const u = match.replace(/url\\(["']?/, '');
+                                if (u.startsWith('https://') && u.length > 50) urls.add(u);
+                            }
+                        }
+                        // 5. Inline style background auf allen Elementen (breiter Scan)
+                        for (const el of document.querySelectorAll('*')) {
+                            const cs = window.getComputedStyle(el).backgroundImage;
+                            if (cs && cs.startsWith('url(')) {
+                                const m = cs.match(/url\\(["']?(https[^"')]+)/);
+                                if (m && m[1].length > 50) urls.add(m[1]);
+                            }
+                        }
+                        return [...urls];
+                    }
+                """)
+                for u in (collected or []):
+                    urls.add(u)
+            except Exception as e:
+                log.warning(f"JS URL-Sammlung fehlgeschlagen: {e}")
+                # Fallback: nur img[src]
+                try:
+                    pre_imgs = page.locator("img[src^='https://']")
+                    for i in range(await pre_imgs.count()):
+                        s = await pre_imgs.nth(i).get_attribute("src")
+                        if s and len(s) > 50:
+                            urls.add(s)
+                except Exception:
+                    pass
+            return urls
+
+        existing_urls: set[str] = await _collect_all_image_urls(page)
+        log.info(f"📸 {len(existing_urls)} vorhandene URLs gesnapshottert (img + CSS bg + data-src)")
+
+        # ── Methode 1: Netzwerk-Interception ─────────────────────────────────
+        # Fängt CDN-Antwort ab BEVOR sie im DOM erscheint.
+        # Auch application/octet-stream fangen (einige CDNs schicken keine image/- CT)
         captured_image_urls: list[str] = []
 
         def _on_response(response) -> None:
             url = response.url
             if (response.status == 200
                     and url.startswith("https://")
-                    and url not in existing_urls):
+                    and url not in existing_urls
+                    and len(url) > 50):
                 ct = response.headers.get("content-type", "")
-                if ct.startswith("image/") and not ct.startswith("image/svg") and not ct.startswith("image/x-icon"):
-                    # Tiny images (icons < 200 chars URL) überspringen
-                    if len(url) > 50:
-                        captured_image_urls.append(url)
-                        log.info(f"🌐 Netzwerk: neues Bild gefangen: {url[:80]}")
+                # image/* akzeptieren; aber NICHT svg/ico/favicon
+                is_image = ct.startswith("image/") and not ct.startswith("image/svg") and not ct.startswith("image/x-icon")
+                # Auch octet-stream wenn URL nach Bild aussieht
+                is_octet_image = ct == "application/octet-stream" and any(
+                    ext in url.lower() for ext in (".jpg", ".jpeg", ".png", ".webp")
+                )
+                if is_image or is_octet_image:
+                    captured_image_urls.append(url)
+                    log.info(f"🌐 Netzwerk: neues Bild gefangen ({ct}): {url[:80]}")
 
         page.on("response", _on_response)
 
@@ -1311,11 +1372,12 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         # Mindestens 5s warten damit Generation starten kann
         await page.wait_for_timeout(5000)
 
-        # Auf NEUES Bild warten (max 5 Min)
-        # Methode 1: Netzwerk-Interception (primary)
-        # Methode 2: DOM-Scan mit breitem Locator (fallback)
+        # Auf NEUES Bild warten (max 10 Min — Standard-Queue kann langsam sein!)
+        # Methode 1: Netzwerk-Interception (primary — schnellste Erkennung)
+        # Methode 2: Vollständiger DOM-Scan (img + CSS bg + data-src — fallback)
         img_url = None
-        deadline = time.time() + 300
+        TIMEOUT_SECS = 600  # 10 Minuten — Standard-Queue braucht oft >5min
+        deadline = time.time() + TIMEOUT_SECS
         check_n = 0
         while time.time() < deadline:
             await page.wait_for_timeout(4000)
@@ -1327,26 +1389,23 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
                 log.info(f"✅ NEUES Bild via Netzwerk (Check {check_n}): {img_url[:80]}")
                 break
 
-            # ── Methode 2: DOM-Scan (breit — alle https img URLs) ─────────────
-            # Fallback falls Bild bereits im Cache war (kein Netzwerk-Event)
+            # ── Methode 2: Vollständiger DOM-Scan ─────────────────────────────
+            # Sucht img + CSS background-image + data-src — deckt alle Higgsfield-Render-Methoden ab
             try:
-                all_imgs = page.locator("img[src^='https://']")
-                n = await all_imgs.count()
-                new_found = []
-                for i in range(n):
-                    url = await all_imgs.nth(i).get_attribute("src")
-                    if url and url not in existing_urls and len(url) > 50:
-                        new_found.append(url)
+                current_urls = await _collect_all_image_urls(page)
+                new_found = [u for u in current_urls if u not in existing_urls]
                 if new_found:
                     img_url = new_found[-1]
                     log.info(f"✅ NEUES Bild via DOM-Scan (Check {check_n}): {img_url[:80]}")
+                    log.info(f"   (Gesamt: {len(current_urls)} URLs, davon {len(new_found)} neu)")
                     break
-                elapsed = int(time.time() - (deadline - 300))
-                log.info(f"⏳ Check {check_n}: {n} Bilder gesamt, {len(new_found)} neue — {elapsed}s / 300s")
+                elapsed = int(time.time() - (deadline - TIMEOUT_SECS))
+                img_count = len(current_urls)
+                log.info(f"⏳ Check {check_n}: {img_count} URLs gesamt, {len(new_found)} neue — {elapsed}s / {TIMEOUT_SECS}s")
             except Exception as e:
                 log.warning(f"DOM-Scan fehlgeschlagen: {e}")
 
-            if check_n % 5 == 0:  # Screenshot alle 20s
+            if check_n % 5 == 0:  # Screenshot alle 20s für Diagnose
                 try:
                     await page.screenshot(path=f"/tmp/hf_img_wait_{check_n}.png")
                 except Exception:
@@ -1360,7 +1419,7 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             except Exception:
                 pass
             await browser.close()
-            raise TimeoutError(f"Kein neues Bild nach 5 Minuten (vorhandene: {len(existing_urls)})")
+            raise TimeoutError(f"Kein neues Bild nach {TIMEOUT_SECS}s (vorhandene: {len(existing_urls)})")
 
         # Mit Session-Cookies herunterladen — kein 403!
         await _download_with_ctx(ctx, img_url, save_path)
