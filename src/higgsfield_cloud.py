@@ -413,21 +413,28 @@ async def _new_browser_context(p):
     )
 
     # ── Priorität 1: Gespeicherte Session (storage_state — enthält HttpOnly Clerk-JWT!) ──
-    # Nach erstem OTP-Login gespeichert via _save_session(ctx).
-    # Playwright storage_state() erfasst ALLE Cookies inkl. HttpOnly — document.cookie hat sie nie!
-    # Clerk Session-JWT (__session Cookie) ist HttpOnly → NUR storage_state gibt ihn zurück.
+    # Nach erstem Login via __client Cookie gespeichert.
+    # Playwright storage_state() erfasst ALLE Cookies inkl. HttpOnly!
     if Path(STORAGE_STATE_FILE).exists():
         log.info(f"♻️  Session-State geladen: {STORAGE_STATE_FILE} (inkl. HttpOnly Clerk-Cookies)")
         _ctx_kwargs["storage_state"] = STORAGE_STATE_FILE
         ctx = await browser.new_context(**_ctx_kwargs)
     else:
-        # ── Priorität 2: HIGGSFIELD_COOKIES Env (base64 JSON — nur non-HttpOnly) ──
+        # ── Priorität 2: HIGGSFIELD_COOKIES Env ──────────────────────────────
+        # Enthält jetzt __client (HttpOnly Clerk Refresh-Token, läuft ~5 Jahre!)
+        # Playwright add_cookies() kann HttpOnly-Cookies setzen — nur JS kann sie nicht lesen.
+        # Mit __client im Store refresht Clerk JS automatisch den __session JWT!
         ctx = await browser.new_context(**_ctx_kwargs)
         cookies = _load_cookies()
         if cookies:
             await ctx.add_cookies(cookies)
+            has_client = any(c.get("name") == "__client" for c in cookies)
+            if has_client:
+                log.info("🔑 __client Cookie geladen — Clerk kann JWT automatisch refreshen (kein OTP nötig!)")
+            else:
+                log.warning("⚠️ Kein __client Cookie in HIGGSFIELD_COOKIES — JWT kann ablaufen!")
         else:
-            log.info("🔑 Keine Session + keine Cookies — OTP-Login wird bei Bedarf ausgelöst")
+            log.info("🔑 Keine Cookies — OTP-Login wird bei Bedarf ausgelöst")
 
     # ── Anti-Bot: navigator.webdriver verstecken (immer!) ────────────────────
     # Higgsfield erkennt window.navigator.webdriver = true → Bot-Detection-Block
@@ -951,10 +958,12 @@ async def _ensure_logged_in(page) -> bool:
     Prüft ob wir eingeloggt sind. Higgsfield leitet NICHT auf /login um —
     zeigt stattdessen die public Demo-Seite (URL bleibt /ai/image!).
 
-    3-stufige Erkennung:
+    Reihenfolge:
+    0. JS-Check: window.Clerk.session.getToken() — schnellster, zuverlässigster Weg.
+       Mit __client Cookie refresht Clerk automatisch den JWT. Kein OTP nötig!
     1. POSITIV: Clerk UserButton (Avatar) sichtbar → eingeloggt
-    2. NEGATIV: Login/Sign-Up Buttons sichtbar → ausgeloggt (case-insensitiv!)
-    3. FALLBACK: Prompt-Textarea fehlt → Demo-Seite → ausgeloggt
+    2. NEGATIV: Login/Sign-Up Buttons sichtbar → ausgeloggt → Email-Login
+    3. FALLBACK: Prompt-Textarea fehlt → Demo-Seite → Email-Login
 
     WICHTIG: button:has-text() ist CASE-SENSITIV in Playwright!
     Higgsfield zeigt "Sign Up" (großes U) — deshalb BEIDE Varianten prüfen!
@@ -966,22 +975,56 @@ async def _ensure_logged_in(page) -> bool:
         log.warning(f"⚠️ Auf Login-Seite (URL: {current_url}) — versuche Email-Login...")
         return await _login_with_email(page)
 
+    # ── CHECK 0: Clerk JS Session Check (schnellster Weg!) ───────────────────
+    # Mit __client Cookie refresht Clerk automatisch den JWT ohne OTP.
+    # window.Clerk.session.getToken() gibt Fresh-JWT zurück wenn eingeloggt.
+    # Das ist der direkteste Check — kein UI-Scan nötig!
+    log.info("⏳ Warte auf Clerk-Initialisierung (max 25s)...")
+    for clerk_wait in range(5):
+        try:
+            clerk_status = await page.evaluate("""
+                async () => {
+                    if (!window.Clerk) return 'no_clerk';
+                    if (!window.Clerk.session) return 'no_session';
+                    if (window.Clerk.session.status !== 'active') return 'inactive:' + window.Clerk.session.status;
+                    try {
+                        const token = await window.Clerk.session.getToken();
+                        return token ? 'ok:' + token.substring(0, 20) : 'no_token';
+                    } catch(e) {
+                        return 'token_error:' + e.message;
+                    }
+                }
+            """)
+            log.info(f"🔑 Clerk Check {clerk_wait+1}: {clerk_status}")
+            if clerk_status and clerk_status.startswith("ok:"):
+                log.info("✅ Clerk Session aktiv — eingeloggt via __client Cookie!")
+                return True
+            if clerk_status == "no_clerk":
+                # Clerk noch nicht geladen — warten
+                await page.wait_for_timeout(5000)
+                continue
+            if clerk_status and "inactive" in clerk_status:
+                log.warning(f"⚠️ Clerk Session inaktiv: {clerk_status} — versuche Login...")
+                break
+        except Exception as e:
+            log.debug(f"Clerk JS-Check Versuch {clerk_wait+1} fehlgeschlagen: {e}")
+            await page.wait_for_timeout(5000)
+    else:
+        log.warning("⚠️ Clerk nach 25s nicht initialisiert — prüfe UI-Elemente...")
+
     # ── Clerk Session-Refresh abwarten ────────────────────────────────────────
-    # Clerk JWT (__session) ist kurzlebig (5 Min). Beim Laden der Seite refresht
-    # Clerk's JS den JWT via __client_uat automatisch — aber das braucht ~5-15s!
-    # Wir warten bis entweder UserButton ODER Login-Button erscheint (max 20s).
-    log.info("⏳ Warte auf Clerk Session-Initialisierung (max 20s)...")
+    log.info("⏳ Warte auf Clerk UI-Element (max 15s)...")
     try:
         await page.wait_for_selector(
             '.cl-userButtonAvatarBox, [aria-label="Open user button"], '
             '[class*="userButton"], [class*="UserButton"], '
             "a:has-text('Login'), button:has-text('Login'), "
             "a:has-text('Sign Up'), button:has-text('Sign Up')",
-            timeout=20000, state="attached"
+            timeout=15000, state="attached"
         )
-        log.info("✅ Clerk-Element erschienen — prüfe Login-Status...")
+        log.info("✅ Clerk UI-Element erschienen — prüfe Login-Status...")
     except Exception:
-        log.warning("⚠️ Kein Clerk-Element nach 20s — prüfe trotzdem...")
+        log.warning("⚠️ Kein Clerk-Element nach 15s — prüfe trotzdem...")
 
     try:
         # ── Check 1: POSITIV — Clerk UserButton (Avatar) sichtbar? ──────────

@@ -1,7 +1,45 @@
-# Max & Mia World — Vollständiger Pipeline Guide
+# Max & Mia World — Vollständiger Pipeline Guide + HANDOFF
 > **ZUERST LESEN! Vor jedem Chat, vor jedem Run.** Alle Learnings von Tag 0 bis heute.
 
-Zuletzt aktualisiert: 2026-05-16 (nach 5 Tagen Debugging)
+Zuletzt aktualisiert: 2026-05-17 (nach `__client` HttpOnly-Fix)
+
+---
+
+## ⚡ HANDOFF — Neuer Chat startet hier
+
+Du bist ein neuer Claude-Chat. Lies das hier **bevor** du irgendetwas tust:
+
+### Was läuft gerade
+- Vollautomatischer YouTube-Kanal "Max & Mia World" auf GitHub Actions
+- Repo: `shinobi1412ai/maxmia` (GitHub User: `shinobi1412ai`)
+- Täglicher Cron: 02:00 UTC → Bilder + Videos + Upload
+
+### Die 3 absoluten Pflichtregeln
+```
+1. NIEMALS Higgsfield API/CLI/MCP für Generierung nutzen → IMMER Credits!
+   Browser + Unlimited Toggle ON = 0 Credits (Nano Banana Pro Plan)
+
+2. IMMER Max & Mia Charaktere in JEDEN Clip einbauen (beide!)
+   Ohne Max & Mia = falsches Bild
+
+3. IMMER 16:9 Aspect Ratio (Querformat = YouTube)
+```
+
+### Status nach letztem Fix (17.05.2026)
+- ✅ `__client` HttpOnly Cookie als `HIGGSFIELD_COOKIES` Secret gesetzt
+- ✅ `_ensure_logged_in()` hat jetzt CHECK 0: `window.Clerk.session.getToken()` 
+- ✅ `_new_browser_context()` erkennt `__client` Cookie und loggt korrekt
+- ✅ Kein OTP mehr nötig — Clerk refresht JWT automatisch via `__client`
+
+### Erster Schritt bei Problemen
+```bash
+# GitHub Actions letzten Run ansehen
+gh run list --repo shinobi1412ai/maxmia --limit 3
+gh run view <ID> --repo shinobi1412ai/maxmia --log | grep -E "(ERROR|Toggle|Login|OTP|✅|❌|Clerk)"
+
+# Cookies erneuern (wenn Login-Probleme)
+# → Abschnitt 6 lesen!
+```
 
 ---
 
@@ -24,7 +62,7 @@ GitHub Actions (täglich 02:00 UTC)
 
 ---
 
-## 2. Die Charaktere (IMMER in jedem Clip)
+## 2. Die Charaktere (IMMER in jedem Clip — BEIDE!)
 
 ### Mia (Mädchen)
 - Braune Haare in **ZWEI Zöpfen mit ROTEN Schleifen**
@@ -36,7 +74,7 @@ GitHub Actions (täglich 02:00 UTC)
 - Blaues Strickpulli, braune Latzhose mit **Dino-Aufnäher** auf Brusttasche
 - Rote Turnschuhe mit weißen Streifen
 
-### Basis-Prompt (IMMER als Prefix verwenden)
+### Basis-Prompt (IMMER als Prefix verwenden — in CHAR_PROMPT in Code)
 ```
 Mia girl with brown pigtail hair and red ribbons, green eyes, freckles,
 pink dress with yellow stars, pink leggings, pink mary jane shoes.
@@ -56,9 +94,16 @@ Browser + Unlimited Toggle ON = 0 Credits
   Bilder: Nano Banana Pro  →  GRATIS (0 Credits)
   Videos: Kling 2.5 Turbo  →  GRATIS (0 Credits)
 
-API = IMMER Credits (10/Video, 2/Bild) → NIEMALS API nutzen!
+API/CLI/MCP = IMMER Credits (10/Video, 2/Bild) → NIEMALS nutzen!
 Toggle AUS = Credits! → Sofort abbrechen!
 ```
+
+### Was "Unlimited Toggle" bedeutet
+- Der Toggle existiert NUR im Browser (higgsfield.ai UI)
+- API/CLI/MCP umgehen ihn immer → kosten immer Credits
+- MCP-Tools wie `generate_image`, `generate_video` = VERBOTEN!
+- Higgsfield CLI (`higgsfield generate`) = VERBOTEN!
+- `_ensure_unlimited()` macht den Browser-Toggle-Check automatisch
 
 ### Toggle-Check (vor JEDER Generierung!)
 - Toggle-Selector: `div:has-text("Unlimited") > [role="switch"]`
@@ -75,8 +120,8 @@ Alle in `shinobi1412ai/maxmia` → Settings → Secrets → Actions:
 |--------|--------|---------------|
 | `HIGGSFIELD_EMAIL` | makevision1412@gmail.com | Direkt |
 | `GMAIL_APP_PASSWORD` | 16-stellig (kein Leerzeichen) | myaccount.google.com → Sicherheit → App-Passwörter |
-| `HIGGSFIELD_COOKIES` | base64 JSON (Session-Cookies) | Siehe Abschnitt 6 |
-| `YOUTUBE_TOKEN_JSON` | base64 JSON | `python scripts/setup_youtube_oauth.py` |
+| `HIGGSFIELD_COOKIES` | base64 JSON (MIT `__client` HttpOnly!) | Abschnitt 6 |
+| `YOUTUBE_TOKEN_JSON` | base64 JSON | `py scripts/setup_youtube_oauth.py` |
 | `YOUTUBE_CLIENT_SECRETS` | base64 JSON | Google Cloud Console |
 | `SUNO_EMAIL` | makevision1412@gmail.com | Direkt |
 | `SUNO_PASSWORD` | Suno Passwort | Direkt |
@@ -84,47 +129,68 @@ Alle in `shinobi1412ai/maxmia` → Settings → Secrets → Actions:
 
 **NICHT mehr genutzt:** `HIGGSFIELD_PASSWORD` (Higgsfield hat kein Passwort-Login!)
 
-### Secret via CLI setzen (empfohlen — kein BOM-Problem!)
+### Secret via CLI setzen (PFLICHT — kein BOM-Problem!)
 ```bash
 gh secret set GMAIL_APP_PASSWORD --repo shinobi1412ai/maxmia --body "xzrjyztrnmffkteq"
 gh secret set HIGGSFIELD_EMAIL --repo shinobi1412ai/maxmia --body "makevision1412@gmail.com"
 ```
 
+**NIEMALS** via PowerShell Copy-Paste ins GitHub Web UI! (BOM-Bug → JSONDecodeError)
+
 ---
 
-## 5. Higgsfield Login — Wie es wirklich funktioniert
+## 5. Higgsfield Auth — Wie es wirklich funktioniert
 
-### Hintergrund (warum das so komplex ist)
+### Hintergrund — Clerk Auth
 Higgsfield nutzt **Clerk Auth** mit Email OTP — KEIN Passwort-Login!
-- Clerk JWT (`__session` Cookie) läuft nach **~60 Minuten** ab
-- Nach Ablauf zeigt Higgsfield "Log in" Button aber URL bleibt `/ai/image` (kein Redirect!)
-- Google OAuth wird von Google für automatisierte Logins geblockt
-- Lösung: Email OTP + **Gmail IMAP** liest den Code automatisch
 
-### Login-Flow (vollautomatisch nach Fix)
+**Die 3 wichtigen Cookies:**
+| Cookie | Typ | Ablauf | Funktion |
+|--------|-----|--------|---------|
+| `__session` | HttpOnly JWT | ~60 Minuten | Aktive Session-Token |
+| `__client` | HttpOnly JWT | ~2031 (5 Jahre!) | Refresh-Token — erneuert `__session` automatisch! |
+| `__client_uat` | Normal | ~2031 | Zeitstempel des letzten Logins |
+
+**Warum `__client` der Schlüssel ist:**
+- Clerk JS (`window.Clerk`) nutzt `__client` um `__session` automatisch zu erneuern
+- Mit `__client` im Cookie Store: kein OTP nötig, kein manueller Login!
+- Ohne `__client`: `__session` läuft nach 60 Min ab → Login-Button → OTP → Rate-Limit
+
+**Warum `document.cookie` NICHT funktioniert:**
+```
+document.cookie  →  nur nicht-HttpOnly Cookies (KEIN __client, KEIN __session!)
+Playwright storage_state()  →  ALLE Cookies inkl. HttpOnly ✅
+Chrome DevTools → Application → Cookies  →  ALLE Cookies inkl. HttpOnly ✅
+```
+
+### Login-Check (CHECK 0 — neu seit 17.05.2026)
+```python
+# In _ensure_logged_in() — ZUERST ausgeführt:
+clerk_status = await page.evaluate("""
+    async () => {
+        if (!window.Clerk) return 'no_clerk';
+        if (!window.Clerk.session) return 'no_session';
+        const token = await window.Clerk.session.getToken();
+        return token ? 'ok:' + token.substring(0,20) : 'no_token';
+    }
+""")
+# Wenn 'ok:...' → eingeloggt — KEIN OTP nötig!
+```
+
+### Normaler Login-Flow (wenn `__client` fehlt oder abgelaufen)
 ```
 1. Cookies laden → Higgsfield.ai öffnen
 2. Cookie-Banner wegklicken (_dismiss_cookie_banner)
-3. "Log in" Button sichtbar? → OTP Flow
-4.   Login-Button in Navbar klicken (a:has-text('Login'))
+3. CHECK 0: window.Clerk.session.getToken() → eingeloggt? ✅ Fertig!
+4. Falls nicht: Login-Button in Navbar klicken
 5.   "Continue with Email" klicken
 6.   Email eingeben → ENTER drücken (nicht button[type='submit']!)
 7.   Gmail IMAP liest 6-stelligen OTP Code (max 90s warten)
-8.   OTP in Feld eingeben → ENTER drücken
+8.   OTP in Feld eingeben → Clerk auto-submits
 9. Eingeloggt → Toggle ON prüfen → Generate!
 ```
 
-### KRITISCH: button[type='submit'] ist der FALSCHE Button!
-```
-PROBLEM: button[type='submit'] findet den Higgsfield Generate-Button
-         im Seitenhintergrund — NICHT den Continue-Button im Auth-Modal!
-         → Timeout nach 5s
-
-FIX: await email_input.press("Enter")
-     Trifft immer die richtige Form, egal was im Hintergrund ist.
-```
-
-### Gmail App Password (einmalig einrichten)
+### Gmail App Password (einmalig einrichten — für OTP-Fallback)
 1. → https://myaccount.google.com/apppasswords
 2. App name: `Higgsfield Pipeline` → Create
 3. 16-stelligen Code kopieren (ohne Leerzeichen)
@@ -132,27 +198,75 @@ FIX: await email_input.press("Enter")
 
 ---
 
-## 6. Higgsfield Cookies exportieren
+## 6. Higgsfield Cookies exportieren (mit `__client` HttpOnly!)
 
-Cookies halten mehrere Wochen. Wenn Login-Probleme → neue Cookies:
+> ⚠️ **WICHTIG:** `document.cookie` in der Browser-Konsole gibt `__client` NICHT zurück!
+> Es muss Chrome DevTools Application Tab oder Playwright `storage_state()` benutzt werden!
 
-### Methode: Chrome Console (einfachste)
-1. Chrome öffnen, auf `higgsfield.ai` eingeloggt sein
-2. F12 → Console → ausführen:
-```javascript
-copy(btoa(JSON.stringify(document.cookie.split(';').map(c => {
-  const [name, ...rest] = c.trim().split('=');
-  return { name: name.trim(), value: rest.join('=').trim(),
-           domain: 'higgsfield.ai', path: '/' };
-}).filter(c => c.name && c.value))));
-// Inhalt der Zwischenablage als Secret speichern:
+### Methode 1: Chrome DevTools Application Tab (empfohlen — einfachste)
+
+1. Chrome öffnen → `https://higgsfield.ai/ai/image` → einloggen
+2. `F12` → Tab **Application** (oder Anwendung)
+3. Linke Seite: **Cookies** → `https://higgsfield.ai`
+4. Alle Cookies sind sichtbar inkl. HttpOnly (🔒 Schloss-Symbol)
+5. Folgende Cookies notieren (Name + Value):
+   - `__client` ← **DER WICHTIGSTE** (sehr langer JWT)
+   - `__client_uat`
+   - `__session` (kann fehlen wenn abgelaufen)
+6. JSON erstellen:
+```json
+[
+  {"name":"__client","value":"eyJhbGciOi...","domain":".higgsfield.ai","path":"/","secure":true,"httpOnly":true,"sameSite":"Lax","expires":1813524580},
+  {"name":"__client_uat","value":"1234567890","domain":".higgsfield.ai","path":"/","secure":true,"httpOnly":false,"sameSite":"Strict","expires":1813524580}
+]
 ```
-3. `gh secret set HIGGSFIELD_COOKIES --repo shinobi1412ai/maxmia`
-
-### Methode: Script
+7. Als base64 kodieren und als Secret setzen:
 ```bash
-# Chrome erst schließen (DB-Lock), dann:
-python scripts/update_cookies_secret.py
+# In Python:
+import json, base64
+cookies = [{"name":"__client","value":"eyJ...","domain":".higgsfield.ai","path":"/","secure":True,"httpOnly":True,"sameSite":"Lax"}]
+b64 = base64.b64encode(json.dumps(cookies).encode()).decode()
+print(b64)
+
+# Dann:
+gh secret set HIGGSFIELD_COOKIES --repo shinobi1412ai/maxmia --body "<base64>"
+```
+
+### Methode 2: Playwright Script (export_session.py)
+```bash
+# Exports ALLE Cookies inkl. HttpOnly via Playwright storage_state()
+py scripts/export_session.py
+# → Öffnet Browser → einloggen → ENTER drücken
+# → Exportiert alle Cookies inkl. __client als GitHub Secret
+```
+
+### Methode 3: Nur wenn __client schon bekannt (direkt setzen)
+```python
+import json, base64
+
+cookies = [
+    {
+        "name": "__client",
+        "value": "<WERT AUS DEVTOOLS>",
+        "domain": ".higgsfield.ai",
+        "path": "/",
+        "secure": True,
+        "httpOnly": True,
+        "sameSite": "Lax",
+        "expires": 1813524580  # ~2031
+    }
+]
+b64 = base64.b64encode(json.dumps(cookies).encode()).decode()
+print(b64)
+```
+```bash
+gh secret set HIGGSFIELD_COOKIES --repo shinobi1412ai/maxmia --body "<b64>"
+```
+
+### FALSCHE Methode (funktioniert NICHT — kein __client!)
+```javascript
+// ❌ FUNKTIONIERT NICHT — document.cookie kann HttpOnly NICHT lesen!
+copy(btoa(JSON.stringify(document.cookie.split(';').map(...))));
 ```
 
 ---
@@ -264,6 +378,30 @@ Erster Fix nur für `YOUTUBE_TOKEN_JSON`. Beide Secrets brauchen `decode_secret(
 
 ---
 
+### BUG 13: `__client` HttpOnly Cookie fehlte in HIGGSFIELD_COOKIES ⚠️ ROOT CAUSE DER 5-TAGE-AUSFALLS!
+**Symptom:** Pipeline läuft, Clerk-Session läuft nach 60 Min ab, OTP-Flood
+**Ursache:**
+- `document.cookie` in Browser-Console kann HttpOnly-Cookies NICHT lesen
+- `__client` (Clerk Refresh-Token) ist HttpOnly → war NIE in HIGGSFIELD_COOKIES Secret!
+- Ohne `__client` kann Clerk JS den `__session` JWT NICHT refreshen
+- Nach 60 Min: `__session` abgelaufen → Higgsfield zeigt Login-Button → OTP nötig
+- OTP Rate-Limiting nach 20+ Versuchen in einem Tag → Higgsfield sendet keine mehr
+
+**Fix:**
+1. `__client` Wert aus Chrome DevTools kopieren (Application → Cookies, nicht Console!)
+2. Als JSON mit allen Cookie-Feldern (httpOnly: true, expires: ...) bauen
+3. Als base64 codieren → `gh secret set HIGGSFIELD_COOKIES`
+4. In `_new_browser_context()`: `has_client = any(c.get("name") == "__client" for c in cookies)`
+5. In `_ensure_logged_in()`: CHECK 0 — `window.Clerk.session.getToken()` — direkte Clerk JS Prüfung
+
+**Erkennung:**
+```
+Logmeldung: "⚠️ Kein __client Cookie in HIGGSFIELD_COOKIES — JWT kann ablaufen!"
+→ Sofort Cookies erneuern via Abschnitt 6!
+```
+
+---
+
 ## 8. Pipeline-Architektur
 
 ```
@@ -279,9 +417,11 @@ GitHub Actions (ubuntu-latest, timeout: 360min)
     ├── Storyboard: 36 Clips, 3-Akt-Struktur
     │
     ├── 36× _generate_image_async()
-    │   ├── Browser + Cookies laden
+    │   ├── Browser + HIGGSFIELD_COOKIES laden (mit __client!)
     │   ├── Cookie-Banner wegklicken
-    │   ├── Login prüfen → ggf. OTP Flow (Gmail IMAP)
+    │   ├── CHECK 0: window.Clerk.session.getToken() → eingeloggt? ✅
+    │   ├── Falls nicht: Login-Button → OTP Flow (Gmail IMAP)
+    │   ├── _save_session() → storage_state() speichert alle Cookies
     │   ├── Toggle ON prüfen (PFLICHT!)
     │   ├── Prompt eingeben → Enter
     │   ├── Auf neues Bild warten (max 5 Min)
@@ -306,43 +446,57 @@ video-animation-kids/
 │   ├── _load_cookies()           Cookies aus HIGGSFIELD_COOKIES Env
 │   ├── _ensure_unlimited()       Toggle ON prüfen — NIEMALS überspringen!
 │   ├── _dismiss_cookie_banner()  Cookie-Banner wegklicken
-│   ├── _ensure_logged_in()       Login-Status prüfen (Button-Check, nicht URL!)
+│   ├── _ensure_logged_in()       Login CHECK 0: Clerk JS, dann UI-Elemente
 │   ├── _get_otp_from_gmail_sync() Gmail IMAP OTP lesen
 │   ├── _login_with_email()        Email OTP Login (Enter statt submit-Button!)
 │   ├── _goto_with_retry()         Navigation mit Retry + 5s SPA-Wait
-│   ├── _new_browser_context()     Browser + Anti-Bot + Cookies
+│   ├── _save_session()           storage_state() speichern (inkl. HttpOnly!)
+│   ├── _new_browser_context()     Browser + Anti-Bot + __client Cookie Detect
 │   ├── _generate_image_async()   Bild generieren + ctx.request.get() download
 │   └── _generate_video_async()   Video generieren + download
 │
 ├── scripts/pipeline_orchestrator.py   Hauptorchestrator
 ├── scripts/restore_credentials.py     YouTube OAuth aus Secrets
-├── scripts/update_cookies_secret.py   Higgsfield Cookies exportieren
+├── scripts/export_session.py          Playwright storage_state Export (inkl. __client!)
+├── scripts/update_cookies_secret.py   Chrome SQLite Cookie-Export (ohne HttpOnly!)
 ├── .github/workflows/daily_pipeline.yml
 ├── music/                              Fallback MP3s (MÜSSEN in Git sein!)
 ├── state.json                          Themen-Index (auto-committed nach Run)
 └── PIPELINE_GUIDE.md                  DIESE DATEI
 ```
 
+> ⚠️ `update_cookies_secret.py` kann `__client` NICHT exportieren (SQLite hat HttpOnly nicht)
+> → Nutze `export_session.py` (Playwright) oder Chrome DevTools Application Tab!
+
 ---
 
 ## 10. Run starten und überwachen
 
 ```bash
-# Run starten
+# Workflow starten
 gh workflow run daily_pipeline.yml --repo shinobi1412ai/maxmia
 
-# Status
+# Status ansehen
 gh run list --repo shinobi1412ai/maxmia --limit 5
 
-# Job-Steps ansehen (während Run)
-gh api repos/shinobi1412ai/maxmia/actions/runs/<ID>/jobs \
+# Job-Steps ansehen (während Run läuft)
+gh api repos/shinobi1412ai/maxmia/actions/runs/<RUN_ID>/jobs \
   --jq '.jobs[0].steps[] | select(.status != "pending") | {name, status, conclusion}'
 
-# Logs (erst nach Run-Ende verfügbar!)
-gh run view <ID> --repo shinobi1412ai/maxmia --log | grep -E "(ERROR|Toggle|Login|OTP|✅|❌)"
+# Logs (WÄHREND Run)
+gh run view <RUN_ID> --repo shinobi1412ai/maxmia --log | grep -E "(ERROR|Toggle|Login|OTP|Clerk|✅|❌)"
 
 # Run abbrechen
-gh run cancel <ID> --repo shinobi1412ai/maxmia
+gh run cancel <RUN_ID> --repo shinobi1412ai/maxmia
+
+# Aktuellen Run-Status prüfen
+gh run list --repo shinobi1412ai/maxmia --limit 1 --json status,conclusion,databaseId
+```
+
+**Wichtig auf Windows:** Python-Befehle mit `py` starten, nicht `python`!
+```bash
+py scripts/export_session.py     # ✅ (py = Windows Python Launcher)
+python scripts/...               # ❌ Nicht gefunden auf Windows
 ```
 
 ---
@@ -351,13 +505,17 @@ gh run cancel <ID> --repo shinobi1412ai/maxmia
 
 | Symptom | Ursache | Fix |
 |---------|---------|-----|
+| `⚠️ Kein __client Cookie` in Log | __client fehlt in HIGGSFIELD_COOKIES | Abschnitt 6 → DevTools Methode |
 | OTP-Emails kommen, Login schlägt fehl | GMAIL_APP_PASSWORD fehlt oder falsch | Secret prüfen, neu setzen |
 | Toggle nicht gefunden | Cookie-Banner / nicht eingeloggt | Screenshots in Artifacts ansehen |
 | HTTP 403 beim Download | urllib statt ctx.request | `_download_with_ctx()` nutzen |
 | JSONDecodeError BOM | Secret via PowerShell gesetzt | `_strip_bom()` + gh CLI nutzen |
 | Timeout auf button[type='submit'] | Falscher Button (Generate, nicht Auth) | `inp.press("Enter")` |
 | networkidle Timeout | Higgsfield SPA always active | `domcontentloaded` nutzen |
-| Login Button nicht gefunden nach Login | URL prüfen statt Button | Button-Existenz prüfen |
+| Login Button nach Login noch da | URL prüfen statt Button | Button-Existenz prüfen |
+| Credits verbraucht! | API/CLI/MCP benutzt | SOFORT stoppen. Nur Browser! |
+| Clerk Check: `no_clerk` nach 25s | Seite nicht geladen / Bot-Block | Screenshot prüfen, Cookies erneuern |
+| OTP Rate-Limit (keine Email mehr) | Zu viele OTP-Requests (20+ an 1 Tag) | 24h warten, dann __client Cookie setzen |
 
 ---
 
@@ -394,26 +552,32 @@ selfDeclaredMadeForKids = True     # IMMER!
 | mehrere | Mai 2026 | 403, MP3, Story | ❌ → ✅ fixed |
 | 25950996901 | 16.05 02:57 | Cookies abgelaufen → OTP Loop | ❌ cancelled |
 | 25951372718 | 16.05 03:15 | button[type='submit'] Timeout | ❌ |
-| 25960280515 | 16.05 11:02 | Enter-Fix + Gmail App PW | 🔄 läuft |
+| 25960280515 | 16.05 11:02 | Enter-Fix + Gmail App PW | ❌ (kein __client) |
+| nächster Run | 17.05+ | __client Cookie gesetzt + Clerk JS Check | 🔄 pending |
 
 ---
 
 ## 15. Checkliste — Von 0 alles neu einrichten
 
 ```bash
-# 1. Secrets setzen
+# 1. Basis-Secrets setzen
 gh secret set HIGGSFIELD_EMAIL --repo shinobi1412ai/maxmia --body "makevision1412@gmail.com"
 gh secret set GMAIL_APP_PASSWORD --repo shinobi1412ai/maxmia   # App PW eingeben
 gh secret set SUNO_EMAIL --repo shinobi1412ai/maxmia --body "makevision1412@gmail.com"
 gh secret set SUNO_PASSWORD --repo shinobi1412ai/maxmia
 gh secret set ANTHROPIC_API_KEY --repo shinobi1412ai/maxmia
 
-# 2. Higgsfield Cookies (Chrome auf higgsfield.ai offen!)
-# Console: copy(btoa(JSON.stringify([...alle cookies...])))
-gh secret set HIGGSFIELD_COOKIES --repo shinobi1412ai/maxmia
+# 2. Higgsfield Cookies MIT __client (Chrome DevTools Application Tab!)
+# Chrome → higgsfield.ai → F12 → Application → Cookies → __client Value kopieren
+# → JSON bauen → base64 kodieren (Python):
+#   import json,base64; b64=base64.b64encode(json.dumps([{"name":"__client","value":"<VALUE>","domain":".higgsfield.ai","path":"/","secure":True,"httpOnly":True,"sameSite":"Lax"}]).encode()).decode(); print(b64)
+gh secret set HIGGSFIELD_COOKIES --repo shinobi1412ai/maxmia --body "<b64>"
+
+# ODER: Playwright Script (exportiert alle Cookies automatisch)
+py scripts/export_session.py
 
 # 3. YouTube OAuth
-python scripts/setup_youtube_oauth.py
+py scripts/setup_youtube_oauth.py
 gh secret set YOUTUBE_TOKEN_JSON --repo shinobi1412ai/maxmia
 gh secret set YOUTUBE_CLIENT_SECRETS --repo shinobi1412ai/maxmia
 
@@ -427,4 +591,20 @@ gh workflow run daily_pipeline.yml --repo shinobi1412ai/maxmia
 
 ---
 
-*Erstellt von Claude Sonnet 4.6 — 5 Tage Debugging, 12 Bugs gefunden und gefixt*
+## 16. Was NIEMALS tun
+
+```
+❌ python statt py auf Windows (Python Launcher heißt py!)
+❌ Higgsfield CLI/MCP/API für Generierung (IMMER Credits!)
+❌ document.cookie für Cookie-Export (kein __client!)
+❌ PowerShell Copy-Paste in GitHub Web UI (BOM-Bug!)
+❌ Bilder/Videos ohne Max & Mia (beide Charaktere IMMER!)
+❌ Aspect Ratio 1:1 statt 16:9 (YouTube = Querformat!)
+❌ Toggle OFF Generierung (Credits!)
+❌ button[type='submit'] für Auth-Form (ist der Generate-Button!)
+```
+
+---
+
+*Erstellt von Claude Sonnet 4.6 — 5 Tage Debugging, 13 Bugs gefunden und gefixt*
+*Letzter Fix: 17.05.2026 — `__client` HttpOnly Cookie + Clerk JS Check*
