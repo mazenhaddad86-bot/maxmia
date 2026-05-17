@@ -1162,23 +1162,108 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         except Exception as e:
             log.warning(f"Aspect Ratio fehlgeschlagen: {e}")
 
+        # ── Toast-Overlay wegwarten BEVOR Textbox geklickt wird ─────────────────
+        # Nach Toggle ON erscheint Higgsfield-Toast: "Unlimited runs go to the standard queue."
+        # Dieser Toast hat data-overlay-container="true" — sein Subtree fängt ALLE Pointer-Events ab!
+        # Textbox-Klick schlägt fehl mit: "intercepts pointer events" → 30s Timeout → Exception
+        # FIX: Toast warten bis weg (max 15s), dann Klick.
+        log.info("⏳ Warte auf Toast-Verschwinden (max 15s)...")
+        try:
+            # Warte bis der Toast-Text aus dem DOM verschwindet
+            await page.wait_for_selector(
+                'span:has-text("Unlimited runs go to the standard queue")',
+                state="detached",
+                timeout=15000
+            )
+            log.info("✅ Toast verschwunden — Textbox ist jetzt klickbar")
+        except Exception:
+            # Toast war bereits weg ODER nach 15s noch da → trotzdem versuchen
+            log.info("ℹ️ Toast nicht mehr sichtbar (oder Timeout) — Klick versuchen")
+
+        # Nochmal Escape drücken — schließt evtl. verbleibende Overlays
+        try:
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(300)
+        except Exception:
+            pass
+
         # Prompt eingeben — /ai/image nutzt [role="textbox"][contenteditable="true"]
         # WICHTIG: Es gibt mehrere [role="textbox"] auf der Seite (History-Einträge sind read-only).
         # Nur der mit contenteditable="true" ist das echte Eingabefeld!
+        # FALLBACK-KASKADE: normaler Klick → force=True → JS-focus → JS-insertText
+        prompt_entered = False
         try:
             box = page.locator("[role='textbox'][contenteditable='true']").first
             if await box.count() == 0:
                 box = page.locator("textarea").first  # Fallback
-            await box.click()
+
+            # Stufe 1: normaler Klick
+            try:
+                await box.click(timeout=5000)
+                log.info("🖱️ Textbox: normaler Klick erfolgreich")
+            except Exception as e1:
+                log.warning(f"Textbox normaler Klick fehlgeschlagen: {e1}")
+                # Stufe 2: force=True Klick (umgeht Overlay-Interception)
+                try:
+                    await box.click(force=True, timeout=3000)
+                    log.info("🖱️ Textbox: force-Klick erfolgreich")
+                except Exception as e2:
+                    log.warning(f"Textbox force-Klick fehlgeschlagen: {e2}")
+                    # Stufe 3: JS-Focus direkt auf Element
+                    try:
+                        handle = await box.element_handle()
+                        if handle:
+                            await page.evaluate("(el) => { el.focus(); el.click(); }", handle)
+                            log.info("🖱️ Textbox: JS-focus/click erfolgreich")
+                    except Exception as e3:
+                        log.warning(f"Textbox JS-focus fehlgeschlagen: {e3}")
+
             await page.wait_for_timeout(300)
             # Alten Inhalt löschen und neuen eingeben
             await box.press("Control+a")
             await box.press("Delete")
             await box.type(full_prompt, delay=20)
             await page.wait_for_timeout(600)
-            log.info(f"✏️ Prompt eingegeben ({len(full_prompt)} Zeichen)")
+            # Verify: hat der Text tatsächlich reingeschrieben?
+            typed_val = await box.text_content()
+            if typed_val and len(typed_val.strip()) > 10:
+                log.info(f"✏️ Prompt eingegeben ({len(full_prompt)} Zeichen): '{typed_val[:60]}...'")
+                prompt_entered = True
+            else:
+                log.warning(f"⚠️ box.type hat scheinbar nicht funktioniert — Inhalt: {typed_val!r[:80]}")
+                # Stufe 4: JS insertText (Clipboard-Methode als letzter Ausweg)
+                try:
+                    await page.evaluate(
+                        """(args) => {
+                            const el = document.querySelector('[role="textbox"][contenteditable="true"]');
+                            if (el) {
+                                el.focus();
+                                document.execCommand('selectAll');
+                                document.execCommand('delete');
+                                document.execCommand('insertText', false, args.text);
+                            }
+                        }""",
+                        {"text": full_prompt}
+                    )
+                    await page.wait_for_timeout(400)
+                    typed_val2 = await box.text_content()
+                    if typed_val2 and len(typed_val2.strip()) > 10:
+                        log.info(f"✏️ Prompt via JS-execCommand eingegeben: '{typed_val2[:60]}...'")
+                        prompt_entered = True
+                    else:
+                        log.error(f"❌ JS-execCommand gescheitert — Inhalt immer noch: {typed_val2!r[:80]}")
+                except Exception as e4:
+                    log.error(f"❌ JS-execCommand Exception: {e4}")
         except Exception as e:
             log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
+
+        if not prompt_entered:
+            log.error("❌ PROMPT KONNTE NICHT EINGEGEBEN WERDEN — Generate wird OHNE Prompt geklickt!")
+            log.error("❌ Dies führt zu einer Fehlgenerierung. Screenshot für Diagnose:")
+            try:
+                await page.screenshot(path="/tmp/hf_prompt_failed.png")
+            except Exception:
+                pass
 
         # ── Vorhandene Bilder snapshotten VOR Generate-Klick ─────────────────
         # Snapshotten ALLE https:// img-URLs (breit — CDN kann sich ändern!)
