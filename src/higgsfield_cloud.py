@@ -1180,23 +1180,38 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         except Exception as e:
             log.warning(f"Prompt-Eingabe fehlgeschlagen: {e}")
 
-        # ── WICHTIG: Vorhandene Bilder snapshotten VOR Generate-Klick ────────
-        # Ohne das: Code nimmt Japan-Bilder o.ä. die schon auf der Seite sind!
-        IMG_LOCATOR = (
-            "img[src*='cloudfront'], img[src*='cdn.higgsfield'], "
-            "img[src*='storage'], img[src*='higgs.ai'], img[src*='images.higgs']"
-        )
+        # ── Vorhandene Bilder snapshotten VOR Generate-Klick ─────────────────
+        # Snapshotten ALLE https:// img-URLs (breit — CDN kann sich ändern!)
         existing_urls: set[str] = set()
         try:
-            pre_imgs = page.locator(IMG_LOCATOR)
+            pre_imgs = page.locator("img[src^='https://']")
             pre_count = await pre_imgs.count()
             for i in range(pre_count):
                 src = await pre_imgs.nth(i).get_attribute("src")
                 if src:
                     existing_urls.add(src)
-            log.info(f"📸 {len(existing_urls)} vorhandene Bilder auf Seite (werden ignoriert)")
+            log.info(f"📸 {len(existing_urls)} vorhandene Bilder gesnapshottert (werden ignoriert)")
         except Exception as e:
             log.warning(f"Snapshot vorhandener Bilder fehlgeschlagen: {e}")
+
+        # ── Methode 1: Netzwerk-Interception (zuverlässigste Methode) ─────────
+        # Fängt die CDN-Antwort ab BEVOR sie im DOM erscheint.
+        # Higgsfield kann CDN wechseln — wir fangen alle image/- Responses ab!
+        captured_image_urls: list[str] = []
+
+        def _on_response(response) -> None:
+            url = response.url
+            if (response.status == 200
+                    and url.startswith("https://")
+                    and url not in existing_urls):
+                ct = response.headers.get("content-type", "")
+                if ct.startswith("image/") and not ct.startswith("image/svg") and not ct.startswith("image/x-icon"):
+                    # Tiny images (icons < 200 chars URL) überspringen
+                    if len(url) > 50:
+                        captured_image_urls.append(url)
+                        log.info(f"🌐 Netzwerk: neues Bild gefangen: {url[:80]}")
+
+        page.on("response", _on_response)
 
         # Generate — DOM bestätigt: button[type="submit"] auf /ai/image
         try:
@@ -1211,31 +1226,48 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         # Mindestens 5s warten damit Generation starten kann
         await page.wait_for_timeout(5000)
 
-        # Auf NEUES Bild warten (max 5 Min) — nur URLs die NICHT vorher da waren!
+        # Auf NEUES Bild warten (max 5 Min)
+        # Methode 1: Netzwerk-Interception (primary)
+        # Methode 2: DOM-Scan mit breitem Locator (fallback)
         img_url = None
         deadline = time.time() + 300
         check_n = 0
         while time.time() < deadline:
             await page.wait_for_timeout(4000)
             check_n += 1
-            candidates = page.locator(IMG_LOCATOR)
-            n = await candidates.count()
-            new_found = []
-            for i in range(n):
-                url = await candidates.nth(i).get_attribute("src")
-                if url and url.startswith("http") and "loading" not in url and url not in existing_urls:
-                    new_found.append(url)
-            if new_found:
-                img_url = new_found[-1]  # neuestes neues Bild
-                log.info(f"✅ NEUES Bild bereit (Check {check_n}): {img_url[:80]}")
+
+            # ── Methode 1: Netzwerk gefangen? ─────────────────────────────────
+            if captured_image_urls:
+                img_url = captured_image_urls[-1]
+                log.info(f"✅ NEUES Bild via Netzwerk (Check {check_n}): {img_url[:80]}")
                 break
-            elapsed = int(time.time() - (deadline - 300))
-            log.info(f"⏳ Check {check_n}: {n} Bilder gesamt, 0 neue — {elapsed}s / 300s")
+
+            # ── Methode 2: DOM-Scan (breit — alle https img URLs) ─────────────
+            # Fallback falls Bild bereits im Cache war (kein Netzwerk-Event)
+            try:
+                all_imgs = page.locator("img[src^='https://']")
+                n = await all_imgs.count()
+                new_found = []
+                for i in range(n):
+                    url = await all_imgs.nth(i).get_attribute("src")
+                    if url and url not in existing_urls and len(url) > 50:
+                        new_found.append(url)
+                if new_found:
+                    img_url = new_found[-1]
+                    log.info(f"✅ NEUES Bild via DOM-Scan (Check {check_n}): {img_url[:80]}")
+                    break
+                elapsed = int(time.time() - (deadline - 300))
+                log.info(f"⏳ Check {check_n}: {n} Bilder gesamt, {len(new_found)} neue — {elapsed}s / 300s")
+            except Exception as e:
+                log.warning(f"DOM-Scan fehlgeschlagen: {e}")
+
             if check_n % 5 == 0:  # Screenshot alle 20s
                 try:
                     await page.screenshot(path=f"/tmp/hf_img_wait_{check_n}.png")
                 except Exception:
                     pass
+
+        page.remove_listener("response", _on_response)
 
         if not img_url:
             try:
