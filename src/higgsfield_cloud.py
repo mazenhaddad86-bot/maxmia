@@ -1153,6 +1153,33 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
             # Cookie-Banner nochmal wegklicken (erscheint nach Login+Navigate neu)
             await _dismiss_cookie_banner(page)
 
+        # ── Authorization-Header für fnf.higgsfield.ai setzen ─────────────────
+        # Die Generation-API läuft auf fnf.higgsfield.ai (nicht higgsfield.ai).
+        # Cookies gelten nur für higgsfield.ai, nicht für die Subdomain → 403!
+        # FIX: Clerk-JWT via getToken() holen und in JEDEN Request zu fnf.higgsfield.ai
+        # als "Authorization: Bearer <jwt>" Header injizieren.
+        # Das ist genau was die React-App macht — wir machen es nur explizit sicher.
+        try:
+            clerk_token = await page.evaluate("""
+                async () => {
+                    if (window.Clerk && window.Clerk.session) {
+                        return await window.Clerk.session.getToken();
+                    }
+                    return null;
+                }
+            """)
+            if clerk_token:
+                log.info(f"🔑 Clerk-Token für fnf.higgsfield.ai bereit: {clerk_token[:30]}...")
+                async def _inject_auth(route, request):
+                    headers = {**request.headers, "Authorization": f"Bearer {clerk_token}"}
+                    await route.continue_(headers=headers)
+                await page.route("**/fnf.higgsfield.ai/**", _inject_auth)
+                log.info("✅ Route-Interceptor aktiv: Authorization-Header wird injiziert")
+            else:
+                log.warning("⚠️ Clerk-Token nicht verfügbar — Generation könnte 403 geben")
+        except Exception as e:
+            log.warning(f"⚠️ Auth-Interceptor Setup fehlgeschlagen: {e}")
+
         # Unlimited Toggle MUSS ON sein
         ok = await _ensure_unlimited(page)
         if not ok:
