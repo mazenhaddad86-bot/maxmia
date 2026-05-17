@@ -1274,7 +1274,9 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
         # Das selbe gilt für die Suche nach neuen Bildern nach Generate!
 
         async def _collect_all_image_urls(page) -> set[str]:
-            """Sammelt ALLE Bild-URLs aus dem DOM — img, CSS backgrounds, data-src."""
+            """Sammelt Bild-URLs aus dem DOM — img, srcset, data-src, CSS bg (nur style-attr).
+            KEIN getComputedStyle() — das ist zu langsam und friert den Browser ein!
+            """
             urls: set[str] = set()
             try:
                 collected = await page.evaluate("""
@@ -1285,7 +1287,7 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
                             const s = img.getAttribute('src');
                             if (s && s.startsWith('https://') && s.length > 50) urls.add(s);
                         }
-                        // 2. Alle <img srcset> — nimm ersten Kandidaten
+                        // 2. Alle <img srcset> — nimm alle Kandidaten
                         for (const img of document.querySelectorAll('img[srcset]')) {
                             const parts = img.getAttribute('srcset').split(',');
                             for (const p of parts) {
@@ -1298,20 +1300,12 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
                             const s = el.getAttribute('data-src');
                             if (s && s.startsWith('https://') && s.length > 50) urls.add(s);
                         }
-                        // 4. CSS background-image in style-Attributen
+                        // 4. CSS background-image NUR in style-Attributen (kein getComputedStyle!)
                         for (const el of document.querySelectorAll('[style*="background"]')) {
                             const m = el.getAttribute('style').match(/url\\(["']?(https[^"')]+)/g);
                             if (m) for (const match of m) {
                                 const u = match.replace(/url\\(["']?/, '');
                                 if (u.startsWith('https://') && u.length > 50) urls.add(u);
-                            }
-                        }
-                        // 5. Inline style background auf allen Elementen (breiter Scan)
-                        for (const el of document.querySelectorAll('*')) {
-                            const cs = window.getComputedStyle(el).backgroundImage;
-                            if (cs && cs.startsWith('url(')) {
-                                const m = cs.match(/url\\(["']?(https[^"')]+)/);
-                                if (m && m[1].length > 50) urls.add(m[1]);
                             }
                         }
                         return [...urls];
@@ -1359,15 +1353,63 @@ async def _generate_image_async(prompt: str, save_path: Path, aspect_ratio: str 
 
         page.on("response", _on_response)
 
-        # Generate — DOM bestätigt: button[type="submit"] auf /ai/image
-        try:
-            btn = page.locator("button[type='submit']").first
-            await btn.click(timeout=10000)
-            log.info(f"🎨 Generate geklickt — warte auf NEUES Bild: {prompt[:60]}...")
-        except Exception as e:
-            log.error(f"❌ Generate-Button Klick fehlgeschlagen: {e}")
+        # Generate-Button klicken
+        # WICHTIG: Text und State loggen — sicherstellen dass wir den richtigen Button treffen!
+        # Higgsfield /ai/image: button[type="submit"] ODER button mit "Generate"/"Create" Text
+        generate_clicked = False
+        GENERATE_SELECTORS = [
+            "button[type='submit']",
+            "button:has-text('Generate')",
+            "button:has-text('Create')",
+            "button:has-text('Run')",
+            "button[aria-label*='generate' i]",
+            "button[aria-label*='create' i]",
+        ]
+        for gen_sel in GENERATE_SELECTORS:
+            try:
+                btn = page.locator(gen_sel).first
+                if await btn.count() == 0:
+                    continue
+                btn_text = (await btn.text_content() or "").strip()
+                btn_disabled = await btn.get_attribute("disabled")
+                btn_aria = await btn.get_attribute("aria-label")
+                log.info(f"🔍 Generate-Button via '{gen_sel}': text='{btn_text[:50]}' disabled={btn_disabled!r} aria={btn_aria!r}")
+                if btn_disabled is not None:
+                    log.warning(f"⚠️ Button ist disabled — überspringe '{gen_sel}'")
+                    continue
+                await btn.click(timeout=10000)
+                log.info(f"🎨 Generate geklickt ({gen_sel}) — warte auf NEUES Bild: {prompt[:60]}...")
+                generate_clicked = True
+                break
+            except Exception as e:
+                log.warning(f"Generate-Klick via '{gen_sel}' fehlgeschlagen: {e}")
+
+        if not generate_clicked:
+            log.error("❌ Generate-Button nicht gefunden/klickbar!")
+            try:
+                await page.screenshot(path="/tmp/hf_no_generate_btn.png")
+                # Alle Buttons loggen für Diagnose
+                all_btns = page.locator("button")
+                n_btns = await all_btns.count()
+                btn_info = []
+                for i in range(min(n_btns, 15)):
+                    t = (await all_btns.nth(i).text_content() or "").strip()[:40]
+                    tp = await all_btns.nth(i).get_attribute("type")
+                    dis = await all_btns.nth(i).get_attribute("disabled")
+                    btn_info.append(f"[{tp},{dis}]'{t}'")
+                log.error(f"❌ Alle Buttons ({n_btns}): {btn_info}")
+            except Exception:
+                pass
             await browser.close()
-            raise RuntimeError(f"Generate-Button nicht klickbar: {e}")
+            raise RuntimeError("Generate-Button nicht gefunden")
+
+        # Screenshot 3s nach Generate-Klick — zeigt ob Generation gestartet hat
+        await page.wait_for_timeout(3000)
+        try:
+            await page.screenshot(path="/tmp/hf_after_generate.png")
+            log.info("📸 Screenshot nach Generate gespeichert: /tmp/hf_after_generate.png")
+        except Exception:
+            pass
 
         # Mindestens 5s warten damit Generation starten kann
         await page.wait_for_timeout(5000)
