@@ -1,0 +1,28 @@
+{
+  "theme": "babyshark",
+  "audio": "output/babyshark/bs_93eec1c5.mp3",
+  "audio_duration_s": 132,
+  "style_suffix": "Pixar 3D quality, sunny BEACH setting (NOT underwater!), shallow tropical water at the shore, friendly cartoony sharks with big smiles (NOT scary), big-eyed Max (boy) and Mia (girl, blonde pigtails) playing at shore, vibrant blue water and golden sand, cinematic 16:9",
+  "prompts": [
+    {"id": "BS01", "time": "0:00-0:08", "lyric": "Max and Mia at the sunny BEACH with the friendly shark family", "prompt": "Sunny tropical beach, golden sand, blue waves, Max and Mia standing at shore in swimsuits, friendly cartoon shark family visible in shallow water"},
+    {"id": "BS02", "time": "0:08-0:15", "lyric": "Splashing waves and laughing loud", "prompt": "Max and Mia splashing in shallow waves, water droplets, big smiles, laughing pose"},
+    {"id": "BS03", "time": "0:15-0:22", "lyric": "Little shark plays in the sea, tiny fins", "prompt": "Baby shark (small, blue, smiling, big eyes) playing with tiny fins in shallow water, cartoon style"},
+    {"id": "BS04", "time": "0:22-0:29", "lyric": "Little shark plays in the sea, doo doo doo", "prompt": "Baby shark dancing in waves with motion lines, music notes around, joyful"},
+    {"id": "BS05", "time": "0:29-0:36", "lyric": "Mama Shark swims with her child, smiling face", "prompt": "Mama shark (medium, blue, gentle smile, motherly expression) swimming next to baby shark in shallow sea"},
+    {"id": "BS06", "time": "0:36-0:43", "lyric": "Mama Shark swims with her child", "prompt": "Mama and baby shark close-up, loving expressions, sun rays on water surface"},
+    {"id": "BS07", "time": "0:43-0:50", "lyric": "Papa Shark big and strong, splashing waves", "prompt": "Papa shark (large, muscular, big grin, strong pose) splashing big waves with tail, water spraying high"},
+    {"id": "BS08", "time": "0:50-0:57", "lyric": "Papa Shark big and strong", "prompt": "Papa shark heroic pose breaching shallow water, sunlight, dramatic spray"},
+    {"id": "BS09", "time": "0:57-0:64", "lyric": "Granny Shark wears tiny SPECS reading books", "prompt": "Granny shark (white hair fin, tiny round glasses, reading a small book) sitting on rock at shore, comedic"},
+    {"id": "BS10", "time": "0:64-0:71", "lyric": "Granny Shark wears tiny specs", "prompt": "Close-up of Granny shark adjusting tiny glasses, page-turning, charming wrinkles"},
+    {"id": "BS11", "time": "0:71-0:78", "lyric": "Granny Shark with a tiny HAT tells the tales", "prompt": "Another Granny shark wearing tiny straw hat, gesturing while telling stories to baby shark, expressive"},
+    {"id": "BS12", "time": "0:78-0:85", "lyric": "Granny Shark with a tiny hat", "prompt": "Granny shark in tiny hat with baby shark listening attentively, beach background"},
+    {"id": "BS13", "time": "0:85-0:92", "lyric": "All the sharks swim in a line, through the sea", "prompt": "All shark family members swimming in single file line through shallow water, comedic line formation"},
+    {"id": "BS14", "time": "0:92-1:00", "lyric": "All the sharks swim in a line", "prompt": "Aerial view of shark family parade in shallow water, Max+Mia watching from shore"},
+    {"id": "BS15", "time": "1:00-1:06", "lyric": "Max and Mia clap their hands BY THE SHORE", "prompt": "Max and Mia at the shore clapping hands joyfully, water at their feet, shark family watching from sea"},
+    {"id": "BS16", "time": "1:06-1:11", "lyric": "Max and Mia clap their hands", "prompt": "Close-up of Max and Mia mid-clap, big smiles, motion blur on hands, golden sand"},
+    {"id": "BS17", "time": "1:11-1:14", "lyric": "Little shark waves goodbye, see you soon", "prompt": "Baby shark using fin to wave goodbye to Max and Mia, sunset light, friendly farewell"},
+    {"id": "BS18", "time": "1:14-1:22", "lyric": "Little shark waves goodbye", "prompt": "Wide shore shot: shark family in distance waving, Max+Mia waving back from beach, sunset"},
+    {"id": "BS19", "time": "1:22-1:30", "lyric": "(outro doo doo doo)", "prompt": "Title card scene: Max and Mia on beach with shark family in background, 'Shark Family with Max & Mia' soft sunset glow"},
+    {"id": "BS20", "time": "1:30-2:12", "lyric": "(extended outro)", "prompt": "Final golden hour beach panorama, all shark family visible, peaceful tropical paradise, end credits feel"}
+  ]
+}

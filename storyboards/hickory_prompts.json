@@ -1,0 +1,28 @@
+{
+  "theme": "hickory",
+  "audio": "output/hickory/hickory_a721f2e7.mp3",
+  "audio_duration_s": 134,
+  "style_suffix": "Pixar 3D quality, dusty ATTIC interior (wood beams, old trunks, soft sunbeams through small window), ornate antique grandfather clock, friendly cartoon mouse with big expressive eyes (NOT scary), big-eyed Max and Mia in pajamas, warm wood and gold tones, cinematic 16:9",
+  "prompts": [
+    {"id": "HD01", "time": "0:00-0:08", "lyric": "Tick-tock tick-tock, hear the grandfather clock", "prompt": "Tall ornate grandfather clock in dusty attic with wood beams, sunbeam through small window, motes of dust, pendulum swinging"},
+    {"id": "HD02", "time": "0:08-0:16", "lyric": "Max and Mia in the ATTIC watching as the time flies by", "prompt": "Max and Mia sitting on old trunks in attic looking up at the big grandfather clock, soft warm light, big curious eyes"},
+    {"id": "HD03", "time": "0:16-0:23", "lyric": "Tickety-tockety-toe, the mouse climbs high and slow", "prompt": "Small friendly cartoon mouse with big eyes climbing up the front of the grandfather clock, determined pose"},
+    {"id": "HD04", "time": "0:23-0:30", "lyric": "Clock chimes ONE, the mouse has FUN", "prompt": "Clock face showing 1:00 with cartoon BONG effect, mouse smiling wide having fun on clock arms"},
+    {"id": "HD05", "time": "0:30-0:38", "lyric": "Tickety-tockety-toe (×2)", "prompt": "Wide attic shot: mouse on clock, Max+Mia laughing, dust sparkles in sunbeam"},
+    {"id": "HD06", "time": "0:38-0:42", "lyric": "Clock chimes TWO, the mouse says BOO", "prompt": "Clock face showing 2:00, mouse making playful 'BOO!' gesture popping out from behind pendulum"},
+    {"id": "HD07", "time": "0:42-0:50", "lyric": "Tickety-tockety-toe", "prompt": "Mouse swinging on pendulum like a swing, Max+Mia clapping in background"},
+    {"id": "HD08", "time": "0:50-0:54", "lyric": "Mouse begins to GROW", "prompt": "Comedic shot: mouse comically inflating bigger on the clock, surprised expression"},
+    {"id": "HD09", "time": "0:54-0:58", "lyric": "Clock times THREE, the mouse so FREE", "prompt": "Clock face showing 3:00, mouse arms out in free pose floating happily above clock"},
+    {"id": "HD10", "time": "0:58-1:01", "lyric": "Tickety-tockety-toe", "prompt": "Mouse dancing on top of clock, music notes, attic sunbeam"},
+    {"id": "HD11", "time": "1:01-1:25", "lyric": "Tickety tockety toe, mouse plays in a row", "prompt": "Multiple mice (5-6) appearing one by one in a row on the clock, comedic parade pose"},
+    {"id": "HD12", "time": "1:25-1:29", "lyric": "Clock chimes SIX, mouse does TRICKS", "prompt": "Clock face showing 6:00, mouse doing acrobatic tricks (handstand, flip) on clock numerals, dynamic"},
+    {"id": "HD13", "time": "1:29-1:33", "lyric": "Tickety-tockety-toe", "prompt": "Mouse mid-flip captured in motion, sparkles, Max+Mia cheering"},
+    {"id": "HD14", "time": "1:33-1:40", "lyric": "Tick-tock tick-tock, Max and Mia clap along", "prompt": "Max and Mia clapping rhythmically in attic, mouse dancing on clock to beat, music notes"},
+    {"id": "HD15", "time": "1:40-1:48", "lyric": "Tick-tock tick-tock, the mouse loves this song", "prompt": "Mouse singing into a tiny acorn microphone on top of clock, Max+Mia laughing, comedic"},
+    {"id": "HD16", "time": "1:48-1:51", "lyric": "Tickety-tockety-toe", "prompt": "Group hug pose: Max, Mia and mouse together in attic, warm cozy lighting"},
+    {"id": "HD17", "time": "1:51-1:55", "lyric": "The mouse waves and says HELLO", "prompt": "Mouse on clock waving HELLO directly at camera, big friendly smile, intro-style greeting"},
+    {"id": "HD18", "time": "1:55-1:59", "lyric": "Clock chimes TWELVE", "prompt": "Clock face showing 12:00 with all 12 chimes, cartoon stars/confetti exploding from clock"},
+    {"id": "HD19", "time": "1:59-2:01", "lyric": "Mouse LOVES himself", "prompt": "Mouse striking heroic self-loving pose with hand on heart, sparkle in eye, comedic"},
+    {"id": "HD20", "time": "2:01-2:13", "lyric": "Tickety, tockety, toe", "prompt": "Final title scene: Max + Mia with mouse on grandfather clock in attic, title 'Tickety Tockety with Max & Mia' golden fade"}
+  ]
+}

@@ -332,7 +332,7 @@ async def _goto_with_retry(page, url: str, retries: int = 3) -> bool:
 
 # Pfad für gespeicherten Browser-State (inkl. HttpOnly Cookies!)
 # Nach erstem OTP-Login gespeichert → alle weiteren Generierungen nutzen ihn
-STORAGE_STATE_FILE = "/tmp/hf_session_state.json"
+STORAGE_STATE_FILE = "C:/tmp/hf_session_state.json"
 
 
 async def _save_session(ctx) -> None:
@@ -509,13 +509,17 @@ def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
             since_dt = datetime.now(timezone.utc) - timedelta(seconds=max_age_seconds + 30)
             since_str = since_dt.strftime("%d-%b-%Y")
 
-            # Suche NUR nach Verification-Code-Emails — NICHT Notification-Emails!
-            # "New device signed in" = Benachrichtigung, kein OTP-Code → ÜBERSPRINGEN!
+            # Suche NUR nach Higgsfield/Clerk OTP Emails — MIT Absender-Filter!
+            # Echte Higgsfield OTP-Emails kommen von Clerk (noreply@*.clerk.dev etc.)
+            # "Hetzner Verification Code" etc. => IGNORIEREN via FROM-Filter!
             # Echter OTP Subject: "504727 is your verification code"
             search_criteria = [
-                f'(SUBJECT "verification code" SINCE {since_str})',
-                f'(SUBJECT "is your verification" SINCE {since_str})',
-                f'(SUBJECT "your code" SINCE {since_str})',
+                f'(FROM "higgsfield" SUBJECT "verification" SINCE {since_str})',
+                f'(FROM "clerk" SUBJECT "verification" SINCE {since_str})',
+                f'(FROM "noreply" SUBJECT "verification code" SINCE {since_str})',
+                f'(FROM "higgsfield" SINCE {since_str})',
+                # Fallback: nur Subject, aber Sender wird danach geprueft
+                f'(SUBJECT "is your verification code" SINCE {since_str})',
             ]
 
             all_ids = set()
@@ -538,11 +542,18 @@ def _get_otp_from_gmail_sync(gmail_user: str, gmail_app_password: str,
                         msg = email_lib.message_from_bytes(msg_data[0][1])
 
                         subject = msg.get("Subject", "")
+                        sender = msg.get("From", "").lower()
 
-                        # Notification-Emails überspringen (kein OTP drin!)
+                        # NUR Higgsfield/Clerk Emails akzeptieren (nicht Hetzner etc.)
+                        ALLOWED_SENDERS = ["higgsfield", "clerk", "noreply@higgsfield"]
+                        if not any(s in sender for s in ALLOWED_SENDERS):
+                            log.debug(f"   Ignoriere Email von fremdem Absender: {sender!r}")
+                            continue
+
+                        # Notification-Emails ueberspringen (kein OTP drin!)
                         skip_subjects = ["signed in", "new device", "welcome", "password changed"]
                         if any(s in subject.lower() for s in skip_subjects):
-                            log.debug(f"   Überspringe Notification-Email: {subject!r}")
+                            log.debug(f"   Ueberspringe Notification-Email: {subject!r}")
                             continue
 
                         # OTP aus Subject extrahieren — z.B. "504727 is your verification code"
@@ -734,16 +745,46 @@ async def _login_with_email(page) -> bool:
                 pass
             return False
 
-        # Enter drücken → OTP Email wird gesendet
-        # WICHTIG: button[type='submit'] NICHT verwenden — das ist der Higgsfield
-        # Generate-Button im Hintergrund, NICHT der Continue-Button im Auth-Modal!
-        # Enter auf dem Email-Feld ist zuverlässiger und trifft immer das richtige.
-        for sel in email_input_selectors:
-            inp = page.locator(sel).first
-            if await inp.count() > 0:
-                await inp.press("Enter")
-                log.info("⌨️ Enter gedrückt auf Email-Feld → OTP Email unterwegs...")
-                break
+        # Pruefen ob Password-Form erschienen ist (neue Higgsfield UI seit Mai 2026)
+        # Wenn ja: "Forgot password?" klicken → OTP Code per Email
+        await page.wait_for_timeout(1500)
+        pwd_field = page.locator("input[type='password'], input[name='password']")
+        if await pwd_field.count() > 0:
+            log.info("Neue UI: Password-Form erkannt — klicke 'Forgot password?'...")
+            forgot_selectors = [
+                "a:has-text('Forgot password')",
+                "button:has-text('Forgot password')",
+                "a:has-text('forgot')",
+                "[href*='forgot']",
+                "a:has-text('Use email code')",
+                "a:has-text('Send code')",
+                "a:has-text('email link')",
+            ]
+            forgot_clicked = False
+            for sel in forgot_selectors:
+                btn = page.locator(sel).first
+                if await btn.count() > 0:
+                    await btn.click(timeout=5000)
+                    log.info(f"'Forgot password?' geklickt via '{sel}'")
+                    forgot_clicked = True
+                    await page.wait_for_timeout(3000)
+                    break
+            if not forgot_clicked:
+                # Fallback: Enter druecken und auf OTP hoffen
+                log.warning("'Forgot password?' nicht gefunden — druecke Enter auf Email-Feld")
+                for sel in email_input_selectors:
+                    inp = page.locator(sel).first
+                    if await inp.count() > 0:
+                        await inp.press("Enter")
+                        break
+        else:
+            # Alter Flow: Enter auf Email-Feld druecken → OTP Email
+            for sel in email_input_selectors:
+                inp = page.locator(sel).first
+                if await inp.count() > 0:
+                    await inp.press("Enter")
+                    log.info("Enter gedrueckt auf Email-Feld → OTP Email unterwegs...")
+                    break
         await page.wait_for_timeout(2000)
 
         # Warte bis OTP-Eingabefeld erscheint (Clerk zeigt es nach Email-Submit)
@@ -752,13 +793,14 @@ async def _login_with_email(page) -> bool:
         try:
             await page.wait_for_selector(
                 "input[inputmode='numeric'], input[autocomplete='one-time-code'], "
-                "input[type='text'][maxlength='1'], input[type='text'][maxlength='6']",
-                timeout=15000, state="visible"
+                "input[type='text'][maxlength='1'], input[type='text'][maxlength='6'],"
+                "input[type='number'], input[name*='code' i], input[placeholder*='code' i]",
+                timeout=45000, state="visible"
             )
             otp_appeared = True
-            log.info("✅ OTP-Eingabefeld erschienen!")
+            log.info("OTP-Eingabefeld erschienen!")
         except Exception:
-            log.warning("⚠️ OTP-Feld nach 15s noch nicht sichtbar — versuche trotzdem...")
+            log.warning("OTP-Feld nach 45s noch nicht sichtbar — versuche trotzdem...")
 
         await page.wait_for_timeout(2000)
         try:

@@ -1,0 +1,68 @@
+{
+  "channel": "Max And Mia World",
+  "channel_id": "UCWNyZhMKMufzVnKRQj8njuw",
+  "default_tags": ["kids songs", "nursery rhymes", "Max and Mia", "kids learning", "preschool", "toddler songs", "kids animation", "Pixar style", "education kids"],
+  "default_made_for_kids": true,
+  "default_language": "en",
+  "videos": {
+    "wheels_pep": {
+      "file_pattern": "output/wheels/wheels_final.mp4",
+      "audio": "wheels_pep_16b83b57.mp3",
+      "duration_s": 163,
+      "title": "Big Wheels Roll & Roll  Max and Mia Bus Adventure!",
+      "description": "Hop on the bus with Max and Mia for a sunny adventure! Round and round the big wheels spin through town. Perfect bouncy song for toddlers and preschoolers!\n\nFollow Max and Mia World for more nursery rhymes, learning songs, and Pixar-style adventures!\n\n#KidsSongs #NurseryRhymes #MaxAndMia",
+      "tags_extra": ["wheels on the bus", "bus song", "big wheels", "kids transportation song"],
+      "playlist": "Max And Mia Songs"
+    },
+    "twinkle_lullaby": {
+      "file_pattern": "output/twinkle/twinkle_lullaby_final.mp4",
+      "audio": "twinkle_lullaby_ac051e17.mp3",
+      "duration_s": 198,
+      "title": "Shiny Shiny Tiny Gem  Max and Mia Lullaby (Sleep Song)",
+      "description": "A gentle lullaby to soothe little ones to sleep. Watch Max and Mia drift through a starry sky with twinkling gems and a smiling moon.\n\nPerfect for bedtime, nap time, and quiet play. Soft orchestral lullaby for babies and toddlers.\n\n#Lullaby #BedtimeSong #KidsSleep #MaxAndMia",
+      "tags_extra": ["lullaby", "bedtime song", "sleep music for babies", "star song", "gentle music"],
+      "playlist": "Lullabies"
+    },
+    "oldmac": {
+      "file_pattern": "output/oldmacdonald/oldmac_final.mp4",
+      "audio": "oldmac_2c1ea1ba.mp3",
+      "duration_s": 164,
+      "title": "Old MacDonald Had a Farm  Max and Mia Farm Animals Song",
+      "description": "EE-I-EE-I-O! Join Max and Mia on Old MacDonald's farm to meet all the animals — cow, pig, duck, sheep, horse, and more! Country folk fun for kids.\n\nLearn animal sounds with Max and Mia World!\n\n#OldMacDonald #FarmAnimals #KidsSongs #MaxAndMia",
+      "tags_extra": ["old macdonald", "farm animals", "animal sounds", "cow song", "kids farm"],
+      "playlist": "Max And Mia Songs"
+    },
+    "babyshark": {
+      "file_pattern": "output/babyshark/babyshark_final.mp4",
+      "audio": "bs_93eec1c5.mp3",
+      "duration_s": 132,
+      "title": "Shark Family Dance  Max and Mia Underwater Adventure!",
+      "description": "Doo doo doo! Dive into the ocean with Max and Mia to meet the shark family and dance with all their reef friends!\n\nTropical bouncy fun for kids who love the sea!\n\n#SharkSong #OceanSongs #KidsSongs #MaxAndMia",
+      "tags_extra": ["baby shark", "shark family", "ocean song", "underwater", "sea animals"],
+      "playlist": "Max And Mia Songs"
+    },
+    "hickory": {
+      "file_pattern": "output/hickory/hickory_final.mp4",
+      "audio": "hickory_a721f2e7.mp3",
+      "duration_s": 134,
+      "title": "Tickety Tocketty Toe  Max and Mia Mouse and Clock Song",
+      "description": "Tick tock! The mouse ran up the clock! Watch Max and Mia laugh as silly mice climb a big grandfather clock in this playful comedy song.\n\nA fun spin on the classic clock nursery rhyme!\n\n#KidsSongs #NurseryRhymes #MaxAndMia",
+      "tags_extra": ["hickory dickory dock", "mouse song", "clock song", "kids comedy"],
+      "playlist": "Max And Mia Songs"
+    },
+    "row": {
+      "file_pattern": "output/row/row_final.mp4",
+      "audio": "row_v55_136d4cff.mp3",
+      "duration_s": 124,
+      "title": "Row Row Row Your Boat  Max and Mia Lake Adventure",
+      "description": "Gently down the stream! Row with Max and Mia across a peaceful lake at golden hour, meeting friendly woodland animals along the way.\n\nA calm folk song perfect for kids!\n\n#RowRowRow #KidsSongs #NurseryRhymes #MaxAndMia",
+      "tags_extra": ["row row row your boat", "boat song", "lake adventure", "calm kids song"],
+      "playlist": "Max And Mia Songs"
+    }
+  },
+  "upload_schedule": {
+    "rule": "Max 1-3 uploads per 3-hour window",
+    "next_window_after": "2026-05-25 09:00 (quota reset)",
+    "spacing_min": "3h between uploads"
+  }
+}

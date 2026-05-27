@@ -1,0 +1,25 @@
+{
+  "theme": "row",
+  "audio": "output/row/row_v55_136d4cff.mp3",
+  "audio_duration_s": 124,
+  "style_suffix": "Pixar 3D quality, serene lake/stream landscape, golden hour to soft moonlight progression, wooden rowboat, big-eyed Max (boy, blue lifejacket) and Mia (girl, blonde pigtails, pink lifejacket), friendly woodland animals, cinematic 16:9, dreamy atmosphere",
+  "prompts": [
+    {"id": "R01", "time": "0:00-0:13", "lyric": "Max and Mia in a little boat floating on the gentle stream", "prompt": "Small wooden rowboat on a calm forest stream, Max and Mia inside wearing lifejackets, soft morning mist, paddles in hand"},
+    {"id": "R02", "time": "0:13-0:20", "lyric": "Singing songs and laughing loud on their lovely paddle dream", "prompt": "Max and Mia in boat singing with mouths open, music notes floating, dreamy atmosphere, sunny stream"},
+    {"id": "R03", "time": "0:20-0:27", "lyric": "Paddle paddle little boat, gently down the stream", "prompt": "Close-up of paddles dipping into clear water creating ripples, gentle motion, reflection of sky"},
+    {"id": "R04", "time": "0:27-0:33", "lyric": "Mary Mary Mary Mary, life is but a dream", "prompt": "Dreamy stream scene with butterflies and dragonflies, ethereal soft light, Max+Mia paddling in rhythm"},
+    {"id": "R05", "time": "0:33-0:40", "lyric": "Paddle paddle little boat, down the winding CREEK", "prompt": "Winding narrow creek between mossy banks, boat navigating curves, lush ferns, sunlight through trees"},
+    {"id": "R06", "time": "0:40-0:47", "lyric": "Pass the trees and flowers, pass the splashing leak", "prompt": "Boat passing colorful wildflowers and small waterfall (splashing leak), water droplets sparkle"},
+    {"id": "R07", "time": "0:47-0:54", "lyric": "Paddle paddle little boat, down the sunny BAY", "prompt": "Wider open sunny bay, boat in middle distance, blue waters opening up, distant hills"},
+    {"id": "R08", "time": "0:54-0:61", "lyric": "Watch the ducks and fishes on this sunny day", "prompt": "Friendly cartoon ducks swimming next to boat, colorful fish jumping out of water, Max+Mia delighted"},
+    {"id": "R09", "time": "0:61-0:75", "lyric": "(Instrumental break)", "prompt": "Wide panoramic vista: bay with boat tiny in distance, golden hour lighting, peaceful nature"},
+    {"id": "R10", "time": "0:75-0:81", "lyric": "Max and Mia row together, side by side they go", "prompt": "Top-down view: Max and Mia paddling together in perfect sync, side by side, harmonious motion"},
+    {"id": "R11", "time": "0:81-0:88", "lyric": "Pass the BRIDGE and WILLOWS, where the waters flow", "prompt": "Boat passing under stone bridge with weeping willow trees hanging over water, gentle current"},
+    {"id": "R12", "time": "0:88-0:95", "lyric": "Paddle paddle little boat, down the gentle stream", "prompt": "Boat back on gentle stream at evening light, golden hour, fireflies starting to appear"},
+    {"id": "R13", "time": "0:95-1:02", "lyric": "Mary Mary Mary Mary, life is but a dream", "prompt": "Dusk dreamy scene with first stars appearing, soft purple sky, boat silhouette on glowing water"},
+    {"id": "R14", "time": "1:02-1:08", "lyric": "Paddle paddle little boat, HOME before the night", "prompt": "Cozy cottage visible in distance with warm light in window, boat heading toward home, dusk"},
+    {"id": "R15", "time": "1:08-1:12", "lyric": "Stars are coming out now", "prompt": "Night sky filling with stars, boat in calm water reflecting them, Max+Mia looking up"},
+    {"id": "R16", "time": "1:12-1:17", "lyric": "Sleep in dreamy light", "prompt": "Max and Mia yawning in boat, leaning against each other, soft moon light, ready for sleep"},
+    {"id": "R17", "time": "1:17-2:04", "lyric": "(outro)", "prompt": "Final title card: 'Paddle Paddle with Max & Mia' over peaceful moonlit stream and boat, end credits feel"}
+  ]
+}

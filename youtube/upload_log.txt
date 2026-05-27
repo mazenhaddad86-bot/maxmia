@@ -1,0 +1,445 @@
+
+=== UPLOAD PLAN: 4 Hauptvideos + 28 Shorts ===
+
+
+Lade hoch: baa_baa_final_v3.mp4
+Titel: Baa Baa Black Sheep 🐑 | Nursery Rhymes & Kids Songs | Max & Mia World
+Sichtbarkeit: public
+
+Erste Anmeldung - Browser oeffnet sich...
+Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=15779939302-1s63t0sm59a3p8gcd93orkt63u5u9il9.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A59571%2F&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.upload+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&state=unDhHHZlMXa42IZMYmg8n81IzZIF48&code_challenge=qaJTzLe_6wTU8MZOGwhCI_CXBke4wD3VcnVANqSAIHE&code_challenge_method=S256&access_type=offline
+Token gespeichert - naechstes Mal automatisch!
+Upload gestartet...
+  Fortschritt: 1%
+  Fortschritt: 3%
+  Fortschritt: 4%
+  Fortschritt: 6%
+  Fortschritt: 7%
+  Fortschritt: 9%
+  Fortschritt: 11%
+  Fortschritt: 12%
+  Fortschritt: 14%
+  Fortschritt: 15%
+  Fortschritt: 17%
+  Fortschritt: 19%
+  Fortschritt: 20%
+  Fortschritt: 22%
+  Fortschritt: 23%
+  Fortschritt: 25%
+  Fortschritt: 26%
+  Fortschritt: 28%
+  Fortschritt: 30%
+  Fortschritt: 31%
+  Fortschritt: 33%
+  Fortschritt: 34%
+  Fortschritt: 36%
+  Fortschritt: 38%
+  Fortschritt: 39%
+  Fortschritt: 41%
+  Fortschritt: 42%
+  Fortschritt: 44%
+  Fortschritt: 45%
+  Fortschritt: 47%
+  Fortschritt: 49%
+  Fortschritt: 50%
+  Fortschritt: 52%
+  Fortschritt: 53%
+  Fortschritt: 55%
+  Fortschritt: 57%
+  Fortschritt: 58%
+  Fortschritt: 60%
+  Fortschritt: 61%
+  Fortschritt: 63%
+  Fortschritt: 65%
+  Fortschritt: 66%
+  Fortschritt: 68%
+  Fortschritt: 69%
+  Fortschritt: 71%
+  Fortschritt: 72%
+  Fortschritt: 74%
+  Fortschritt: 76%
+  Fortschritt: 77%
+  Fortschritt: 79%
+  Fortschritt: 80%
+  Fortschritt: 82%
+  Fortschritt: 84%
+  Fortschritt: 85%
+  Fortschritt: 87%
+  Fortschritt: 88%
+  Fortschritt: 90%
+  Fortschritt: 91%
+  Fortschritt: 93%
+  Fortschritt: 95%
+  Fortschritt: 96%
+  Fortschritt: 98%
+  Fortschritt: 99%
+
+Erfolgreich hochgeladen!
+Video-ID: tKbgMtKkaZo
+URL: https://www.youtube.com/watch?v=tKbgMtKkaZo
+Thumbnail gesetzt!
+
+Lade hoch: humpty_dumpty_v3_FINAL.mp4
+Titel: Humpty Dumpty 🥚 | Nursery Rhymes & Kids Songs | Max & Mia World
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 10%
+  Fortschritt: 20%
+  Fortschritt: 30%
+  Fortschritt: 41%
+  Fortschritt: 51%
+  Fortschritt: 61%
+  Fortschritt: 71%
+  Fortschritt: 82%
+  Fortschritt: 92%
+
+Erfolgreich hochgeladen!
+Video-ID: I8P6n8K2tUA
+URL: https://www.youtube.com/watch?v=I8P6n8K2tUA
+Thumbnail gesetzt!
+
+Lade hoch: twinkle_final.mp4
+Titel: Twinkle Twinkle Little Star ⭐ | Nursery Rhymes & Kids Songs | Max & Mia World
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 1%
+  Fortschritt: 3%
+  Fortschritt: 5%
+  Fortschritt: 7%
+  Fortschritt: 9%
+  Fortschritt: 11%
+  Fortschritt: 13%
+  Fortschritt: 15%
+  Fortschritt: 17%
+  Fortschritt: 19%
+  Fortschritt: 21%
+  Fortschritt: 23%
+  Fortschritt: 25%
+  Fortschritt: 27%
+  Fortschritt: 29%
+  Fortschritt: 31%
+  Fortschritt: 33%
+  Fortschritt: 35%
+  Fortschritt: 37%
+  Fortschritt: 39%
+  Fortschritt: 41%
+  Fortschritt: 43%
+  Fortschritt: 45%
+  Fortschritt: 47%
+  Fortschritt: 49%
+  Fortschritt: 51%
+  Fortschritt: 53%
+  Fortschritt: 55%
+  Fortschritt: 57%
+  Fortschritt: 59%
+  Fortschritt: 61%
+  Fortschritt: 63%
+  Fortschritt: 65%
+  Fortschritt: 67%
+  Fortschritt: 69%
+  Fortschritt: 71%
+  Fortschritt: 73%
+  Fortschritt: 75%
+  Fortschritt: 77%
+  Fortschritt: 79%
+  Fortschritt: 81%
+  Fortschritt: 83%
+  Fortschritt: 85%
+  Fortschritt: 87%
+  Fortschritt: 89%
+  Fortschritt: 91%
+  Fortschritt: 93%
+  Fortschritt: 95%
+  Fortschritt: 97%
+  Fortschritt: 99%
+
+Erfolgreich hochgeladen!
+Video-ID: N5LwCvfbtbI
+URL: https://www.youtube.com/watch?v=N5LwCvfbtbI
+Thumbnail gesetzt!
+
+Lade hoch: final_v2_16x9.mp4
+Titel: Nature Discovery 🌿 | Learning for Kids | Max & Mia World
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 3%
+  Fortschritt: 7%
+  Fortschritt: 11%
+  Fortschritt: 15%
+  Fortschritt: 19%
+  Fortschritt: 23%
+  Fortschritt: 26%
+  Fortschritt: 30%
+  Fortschritt: 34%
+  Fortschritt: 38%
+  Fortschritt: 42%
+  Fortschritt: 46%
+  Fortschritt: 49%
+  Fortschritt: 53%
+  Fortschritt: 57%
+  Fortschritt: 61%
+  Fortschritt: 65%
+  Fortschritt: 69%
+  Fortschritt: 72%
+  Fortschritt: 76%
+  Fortschritt: 80%
+  Fortschritt: 84%
+  Fortschritt: 88%
+  Fortschritt: 92%
+  Fortschritt: 96%
+  Fortschritt: 99%
+
+Erfolgreich hochgeladen!
+Video-ID: BE2JEtae0Yg
+URL: https://www.youtube.com/watch?v=BE2JEtae0Yg
+Thumbnail gesetzt!
+
+Lade hoch: short_1.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 66%
+
+Erfolgreich hochgeladen!
+Video-ID: 4gw240Y6Ur8
+URL: https://www.youtube.com/watch?v=4gw240Y6Ur8
+
+Lade hoch: short_2.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 79%
+
+Erfolgreich hochgeladen!
+Video-ID: xk-henYfuv0
+URL: https://www.youtube.com/watch?v=xk-henYfuv0
+
+Lade hoch: short_3.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 73%
+
+Erfolgreich hochgeladen!
+Video-ID: CZ0bRrJkoGo
+URL: https://www.youtube.com/watch?v=CZ0bRrJkoGo
+
+Lade hoch: short_4.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 93%
+
+Erfolgreich hochgeladen!
+Video-ID: Xyndjc0ah54
+URL: https://www.youtube.com/watch?v=Xyndjc0ah54
+
+Lade hoch: baa_baa_SHORT.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 7%
+  Fortschritt: 14%
+  Fortschritt: 21%
+  Fortschritt: 28%
+  Fortschritt: 35%
+  Fortschritt: 42%
+  Fortschritt: 50%
+  Fortschritt: 57%
+  Fortschritt: 64%
+  Fortschritt: 71%
+  Fortschritt: 78%
+  Fortschritt: 85%
+  Fortschritt: 92%
+
+Erfolgreich hochgeladen!
+Video-ID: kMcNm1vDLaI
+URL: https://www.youtube.com/watch?v=kMcNm1vDLaI
+
+Lade hoch: baa_baa_SHORT_part1.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+  Fortschritt: 7%
+  Fortschritt: 14%
+  Fortschritt: 21%
+  Fortschritt: 28%
+  Fortschritt: 35%
+  Fortschritt: 42%
+  Fortschritt: 50%
+  Fortschritt: 57%
+  Fortschritt: 64%
+  Fortschritt: 71%
+  Fortschritt: 78%
+  Fortschritt: 85%
+  Fortschritt: 92%
+
+Erfolgreich hochgeladen!
+Video-ID: V-XpR2MqmdE
+URL: https://www.youtube.com/watch?v=V-XpR2MqmdE
+
+Lade hoch: baa_baa_SHORT_part2.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei baa_baa_SHORT_part2.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: baa_baa_SHORT_part3.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei baa_baa_SHORT_part3.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: baa_baa_SHORT.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei baa_baa_SHORT.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: baa_baa_SHORT_part1.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei baa_baa_SHORT_part1.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: baa_baa_SHORT_part2.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei baa_baa_SHORT_part2.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: baa_baa_SHORT_part3.mp4
+Titel: Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei baa_baa_SHORT_part3.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: short_1.mp4
+Titel: Humpty Dumpty #HumptyDumpty #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei short_1.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: short_2.mp4
+Titel: Humpty Dumpty #HumptyDumpty #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei short_2.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: short_3.mp4
+Titel: Humpty Dumpty #HumptyDumpty #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei short_3.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short1_intro.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short1_intro.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short2_sparkle.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short2_sparkle.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short3_lullaby.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short3_lullaby.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short4_finale.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short4_finale.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short_test.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short_test.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short1_intro.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short1_intro.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short2_sparkle.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short2_sparkle.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short3_lullaby.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short3_lullaby.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short4_finale.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short4_finale.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: twinkle_short_test.mp4
+Titel: Twinkle Twinkle Little Star #TwinkleTwinkle #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei twinkle_short_test.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: short_1.mp4
+Titel: Nature Discovery #Nature #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei short_1.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: short_2.mp4
+Titel: Nature Discovery #Nature #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei short_2.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+Lade hoch: short_3.mp4
+Titel: Nature Discovery #Nature #Shorts | Kids Songs | Max & Mia
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER bei short_3.mp4 : <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+
+=== FERTIG ===
+https://youtube.com/watch?v=tKbgMtKkaZo  -  Baa Baa Black Sheep 🐑 | Nursery Rhymes & Kids Songs | Max & Mia World
+https://youtube.com/watch?v=I8P6n8K2tUA  -  Humpty Dumpty 🥚 | Nursery Rhymes & Kids Songs | Max & Mia World
+https://youtube.com/watch?v=N5LwCvfbtbI  -  Twinkle Twinkle Little Star ⭐ | Nursery Rhymes & Kids Songs | Max & Mia World
+https://youtube.com/watch?v=BE2JEtae0Yg  -  Nature Discovery 🌿 | Learning for Kids | Max & Mia World
+https://youtube.com/watch?v=4gw240Y6Ur8  -  Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+https://youtube.com/watch?v=xk-henYfuv0  -  Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+https://youtube.com/watch?v=CZ0bRrJkoGo  -  Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+https://youtube.com/watch?v=Xyndjc0ah54  -  Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+https://youtube.com/watch?v=kMcNm1vDLaI  -  Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia
+https://youtube.com/watch?v=V-XpR2MqmdE  -  Baa Baa Black Sheep #BaaBaaBlackSheep #Shorts | Kids Songs | Max & Mia

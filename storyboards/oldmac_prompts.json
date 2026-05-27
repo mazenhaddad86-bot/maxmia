@@ -1,0 +1,29 @@
+{
+  "theme": "oldmac",
+  "audio": "output/oldmacdonald/oldmac_2c1ea1ba.mp3",
+  "audio_duration_s": 164,
+  "style_suffix": "Pixar 3D quality, sunny cartoon farm aesthetic, red barn, warm wood tones, jolly old farmer character (white beard, overalls, straw hat), big-eyed Max (boy, brown hair) and Mia (girl, blonde pigtails), expressive animals, cinematic 16:9",
+  "prompts": [
+    {"id": "OM01", "time": "0:00-0:08", "lyric": "Oh MacDonald had a farm E-I-E-I-O", "prompt": "Wide sunny farm establishing shot with red barn, fields, blue sky, Old MacDonald waving from barn door"},
+    {"id": "OM02", "time": "0:08-0:15", "lyric": "And on his farm he had a COW E-I-E-I-O", "prompt": "Fat cartoon cow with big eyes in green field, Old MacDonald petting it, Max and Mia watching from fence"},
+    {"id": "OM03", "time": "0:15-0:23", "lyric": "Moo moo here, moo moo there", "prompt": "Close-up of cow saying MOO with cartoon sound bubble, motion lines, comedic style"},
+    {"id": "OM04", "time": "0:23-0:30", "lyric": "Old MacDonald had a farm", "prompt": "Old MacDonald singing happily, animals dancing around him, sunny barnyard"},
+    {"id": "OM05", "time": "0:30-0:40", "lyric": "On his farm he had a PIG E-I-E-I-O", "prompt": "Pink cartoon pig in mud puddle with big smile, Max and Mia laughing nearby, splash of mud"},
+    {"id": "OM06", "time": "0:40-0:51", "lyric": "Oink oink here, oink oink there", "prompt": "Multiple piglets oinking with sound bubbles, mud splashing, comedic farm scene"},
+    {"id": "OM07", "time": "0:51-0:63", "lyric": "Old MacDonald had a farm", "prompt": "Pig waves goodbye to Old MacDonald, sunny barnyard transition"},
+    {"id": "OM08", "time": "0:63-0:70", "lyric": "On his farm he had a DUCK E-I-E-I-O", "prompt": "Yellow duck on pond with ducklings swimming behind, Mia kneeling at pond edge"},
+    {"id": "OM09", "time": "0:70-0:78", "lyric": "Quack quack here, quack quack there", "prompt": "Duck and ducklings quacking with sound bubbles, ripples on pond, lily pads"},
+    {"id": "OM10", "time": "0:78-0:91", "lyric": "Old MacDonald had a farm", "prompt": "Max feeds bread crumbs to ducks, all quacking happily, sunny pond scene"},
+    {"id": "OM11", "time": "0:91-0:98", "lyric": "On his farm he had a SHEEP E-I-E-I-O", "prompt": "Fluffy white sheep on green hill, big innocent eyes, Mia hugging sheep"},
+    {"id": "OM12", "time": "0:98-1:05", "lyric": "Baa baa here, baa baa there", "prompt": "Flock of cute sheep baa-ing with sound bubbles, comedic, fluffy clouds above"},
+    {"id": "OM13", "time": "1:05-1:13", "lyric": "Old MacDonald had a farm", "prompt": "Old MacDonald with shepherd staff leading sheep, Max+Mia following, pastoral scene"},
+    {"id": "OM14", "time": "1:13-1:20", "lyric": "On his farm he had a HORSE E-I-E-I-O", "prompt": "Brown horse in stable with white mane, Max patting the horse, friendly expression"},
+    {"id": "OM15", "time": "1:20-1:35", "lyric": "Neigh neigh here, neigh neigh there", "prompt": "Horse neighing with sound bubbles, mane flowing, sunset golden light, dynamic pose"},
+    {"id": "OM16", "time": "1:35-1:42", "lyric": "Old MacDonald had a farm", "prompt": "All animals gathered: cow, pig, duck, sheep, horse with Old MacDonald singing, group barnyard portrait"},
+    {"id": "OM17", "time": "1:42-1:49", "lyric": "(Instrumental break)", "prompt": "Wide farm vista, all animals dancing in barnyard circle, sunset golden hour, magical glow"},
+    {"id": "OM18", "time": "1:49-2:01", "lyric": "Old MacDonald had a farm with Max and Mia on the farm", "prompt": "Max and Mia between Old MacDonald and all animals, group pose, everyone waving, end-of-day warm light"},
+    {"id": "OM19", "time": "2:01-2:13", "lyric": "(extended outro)", "prompt": "Sunset behind red barn, all animals heading to barn one by one, Max+Mia waving from gate"},
+    {"id": "OM20", "time": "2:13-2:25", "lyric": "(outro continues)", "prompt": "Stars appearing over barn, lantern light glowing inside, peaceful nighttime farm"},
+    {"id": "OM21", "time": "2:25-2:44", "lyric": "(final E-I-E-I-O)", "prompt": "Title card scene: Old MacDonald with Max and Mia waving, all animals around, 'Old MacDonald with Max & Mia' soft golden glow"}
+  ]
+}

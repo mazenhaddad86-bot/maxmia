@@ -1,0 +1,31 @@
+{
+  "theme": "wheels",
+  "audio": "output/wheels/suno/wheels_pep_16b83b57.mp3",
+  "audio_duration_s": 163,
+  "style_suffix": "Pixar 3D quality, vibrant kids animation style, big-eyed Max (4yo boy, brown hair, blue shirt) and Mia (4yo girl, blonde pigtails, pink dress), bright sunny color palette, cinematic 16:9, ultra detailed",
+  "prompts": [
+    {"id": "W01", "time": "0:00-0:05", "lyric": "Max and Mia on the yellow bus", "prompt": "Bright yellow school bus driving through a sunny cartoon town, Max (boy) and Mia (girl) waving from windows, blue sky"},
+    {"id": "W02", "time": "0:05-0:09", "lyric": "Riding through the sunny town", "prompt": "Yellow bus rolling through a colorful cartoon town, ice cream shop, park, friendly neighborhood, sunny day"},
+    {"id": "W03", "time": "0:09-0:12", "lyric": "Singing songs and clapping hands", "prompt": "Inside the yellow bus, Max and Mia clapping hands joyfully, mouths open singing, other kids around"},
+    {"id": "W04", "time": "0:12-0:16", "lyric": "All day long, never frown", "prompt": "Wide smiling Max and Mia inside the bus, sunshine streaming through windows, happy expressions"},
+    {"id": "W05", "time": "0:16-0:23", "lyric": "Round and round the big wheel spin", "prompt": "Close-up of giant yellow bus wheel spinning with motion blur, road texture, dynamic angle from below"},
+    {"id": "W06", "time": "0:23-0:30", "lyric": "While we ride along", "prompt": "Side profile of the yellow bus driving past picket fences and trees, Max and Mia visible in windows waving"},
+    {"id": "W07", "time": "0:30-0:38", "lyric": "White birds say swish swish swish", "prompt": "Friendly cartoon white birds (doves) flying alongside the yellow bus, making swish motion lines, bright sky"},
+    {"id": "W08", "time": "0:38-0:44", "lyric": "On our bright bus ride", "prompt": "Aerial shot of yellow bus driving on sunny road with white birds following overhead in formation"},
+    {"id": "W09", "time": "0:44-0:54", "lyric": "Doors go open then they shut, open shut", "prompt": "Yellow bus doors opening and closing animation pose, kids stepping in, friendly bus driver waving"},
+    {"id": "W10", "time": "0:54-0:62", "lyric": "Friends are jumping in", "prompt": "Group of diverse cartoon kid friends jumping into the yellow bus excitedly, backpacks, big smiles"},
+    {"id": "W11", "time": "0:58-1:02", "lyric": "Horn says beep beep beep", "prompt": "Bus horn close-up with cartoon BEEP sound effect bubbles, comedic style, motion lines"},
+    {"id": "W12", "time": "1:02-1:09", "lyric": "Off we go we go", "prompt": "Yellow bus speeding off into sunny road, dust trail behind, Max and Mia waving from back window"},
+    {"id": "W13", "time": "1:09-1:24", "lyric": "(Instrumental break)", "prompt": "Wide cinematic vista: yellow bus driving through countryside hills, butterflies, flowers along the road, golden hour"},
+    {"id": "W14", "time": "1:24-1:30", "lyric": "Kids inside go up and down", "prompt": "Inside bus view: kids bouncing happily on seats, Max and Mia laughing, dynamic up-down motion"},
+    {"id": "W15", "time": "1:30-1:37", "lyric": "Happy as can be", "prompt": "All the kids inside the bus with huge smiles, holding hands up, confetti vibe, joyful"},
+    {"id": "W16", "time": "1:37-1:44", "lyric": "Babies wave their tiny hands", "prompt": "Cartoon babies in tiny bus seats waving with tiny hands, cute big eyes, pacifiers, adorable"},
+    {"id": "W17", "time": "1:44-1:51", "lyric": "Giggling with joy", "prompt": "Close-up of giggling cartoon babies and Max+Mia laughing together, motion lines, joyful chaos"},
+    {"id": "W18", "time": "1:51-1:58", "lyric": "Moms say sing along with us", "prompt": "Cartoon moms inside bus with kids on laps, singing together, music notes floating, warm family scene"},
+    {"id": "W19", "time": "1:58-2:05", "lyric": "What a sunny day", "prompt": "Bright sunshine streaming through bus windows, everyone sing-smiling, music notes, sun rays"},
+    {"id": "W20", "time": "2:05-2:13", "lyric": "Dads are waving from the back", "prompt": "Cartoon dads at back of the bus waving heartily, big grins, kids turned around watching"},
+    {"id": "W21", "time": "2:13-2:20", "lyric": "All our friends are here", "prompt": "Group hug pose inside bus, Max, Mia, all kid friends, moms, dads, babies — full happy ensemble"},
+    {"id": "W22", "time": "2:20-2:34", "lyric": "Round and round the big wheel spin", "prompt": "Epic low-angle shot of spinning bus wheels with sparkles, sunset light, road racing past"},
+    {"id": "W23", "time": "2:34-2:43", "lyric": "Off into the sun", "prompt": "Yellow bus driving toward glowing sunset on horizon, silhouette, lens flare, road into the sun, end shot"}
+  ]
+}

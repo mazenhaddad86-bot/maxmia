@@ -1,0 +1,30 @@
+{
+  "theme": "twinkle_lullaby",
+  "audio": "output/twinkle/twinkle_lullaby_ac051e17.mp3",
+  "audio_duration_s": 198,
+  "style_suffix": "Pixar 3D quality, soft dreamy lullaby aesthetic, deep blue and lavender night sky, gentle pastel glow, big-eyed Max (4yo boy, brown hair, pajamas) and Mia (4yo girl, blonde pigtails, pajamas), cinematic 16:9, ultra detailed depth of field",
+  "prompts": [
+    {"id": "T01", "time": "0:00-0:11", "lyric": "Tiny shining gem above, floating in the night", "prompt": "Single glowing crystal-gem-shaped star floating in deep navy night sky, soft sparkles around it, ethereal"},
+    {"id": "T02", "time": "0:11-0:22", "lyric": "(continued floating)", "prompt": "Wider shot: multiple tiny gem stars floating in night sky, soft clouds drifting, dreamy atmosphere"},
+    {"id": "T03", "time": "0:22-0:31", "lyric": "Max send me a gaze with love at your gentle light", "prompt": "Max in pajamas leaning out bedroom window gazing up with loving smile at glowing gem star, soft moonlight on face"},
+    {"id": "T04", "time": "0:31-0:41", "lyric": "Shiny shiny tiny gem hanging in the sky", "prompt": "Close-up of the magical gem-star with crystal facets sparkling, suspended in starry sky, rainbow refraction"},
+    {"id": "T05", "time": "0:41-0:51", "lyric": "We are wondering at them, twinkling way up high", "prompt": "Max and Mia together at window, both gazing up wonder-struck, gem stars reflected in their big eyes"},
+    {"id": "T06", "time": "0:51-0:61", "lyric": "When the daylight goes to sleep, and the moon comes out to play", "prompt": "Time-lapse style: sun setting on horizon while smiling cartoon moon rises with friendly face"},
+    {"id": "T07", "time": "0:61-0:72", "lyric": "Then you start your glowing peep, lighting up the way", "prompt": "Trail of glowing gem stars forming a path through dark sky, soft pastel glow lighting the night"},
+    {"id": "T08", "time": "0:72-0:81", "lyric": "Shiny shiny tiny gem, we so love to see", "prompt": "Max and Mia hand in hand floating up gently toward the gem stars, dream-like, soft cloud beneath them"},
+    {"id": "T09", "time": "0:81-0:91", "lyric": "Stars are friends, we can defend, family of three", "prompt": "Max + Mia + friendly smiling Moon character together (the family of three), arms around each other in starry sky"},
+    {"id": "T10", "time": "0:91-1:07", "lyric": "(Instrumental)", "prompt": "Wide cosmic vista: Max+Mia riding a soft cloud through galaxy of gem stars, aurora ribbons in pastel colors"},
+    {"id": "T11", "time": "1:07-1:36", "lyric": "Up above the trees and clouds", "prompt": "Looking down from sky: dark treetops and clouds far below, Max and Mia floating high above on cloud"},
+    {"id": "T12", "time": "1:36-1:41", "lyric": "Past the silver moon", "prompt": "Crescent silver moon close-up with kind smiling face, Max and Mia waving as they float past it"},
+    {"id": "T13", "time": "1:41-1:46", "lyric": "Stars sing songs in shimmering crowds", "prompt": "Crowd of tiny gem-stars with smiling faces singing in a choir formation, music notes floating, ethereal harmony"},
+    {"id": "T14", "time": "1:46-1:51", "lyric": "A magic golden (glow)", "prompt": "Magical golden light burst spreading across the night sky, Max and Mia bathed in warm glow"},
+    {"id": "T15", "time": "1:51-1:56", "lyric": "Max and Mia hand in hand", "prompt": "Close-up: Max's and Mia's small hands clasped together, gem stars reflecting on skin, tender pose"},
+    {"id": "T16", "time": "1:56-1:61", "lyric": "Smiling up at you", "prompt": "Low-angle shot of Max and Mia looking up smiling with awe, framed by stars and moon"},
+    {"id": "T17", "time": "2:01-2:06", "lyric": "Through the dark blue starry land", "prompt": "Deep blue cosmic landscape with dunes of stardust, Max and Mia walking on cloud-path, sparkles"},
+    {"id": "T18", "time": "2:06-2:11", "lyric": "Wishing dreams come true", "prompt": "Max and Mia close eyes, hands together, soft glow of wish-magic around them, gem stars circling"},
+    {"id": "T19", "time": "2:11-2:16", "lyric": "Shiny shiny tiny gem", "prompt": "Single gem star up close, perfect symmetry, soft sparkles radiating outward"},
+    {"id": "T20", "time": "2:16-2:21", "lyric": "Hanging in the sky", "prompt": "Wide night sky shot with one prominent glowing gem star, depth of field, dreamy bokeh"},
+    {"id": "T21", "time": "2:21-2:26", "lyric": "We will wave and say to them", "prompt": "Max and Mia from cloud waving up at gem stars, soft smiles, peaceful expressions"},
+    {"id": "T22", "time": "2:26-3:12", "lyric": "Good night stars, goodbye", "prompt": "Final scene: Max and Mia tucked into starry cloud-bed with smiling moon above, soft glow, peaceful sleep, title card 'Good night' fading in"}
+  ]
+}

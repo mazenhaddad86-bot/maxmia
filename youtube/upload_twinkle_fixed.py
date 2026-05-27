@@ -1,0 +1,20 @@
+# -*- coding: utf-8 -*-
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+from upload import upload_video
+
+V = r"C:\Users\myshi\Documents\Claude\Projects\video-animation-kids\output\twinkle\twinkle_final_fixed.mp4"
+THUMB = r"C:\Users\myshi\Documents\Claude\Projects\video-animation-kids\output\thumbnails\twinkle_thumb.png"
+
+TITLE = "Twinkle Twinkle Little Star ⭐ | Nursery Rhymes & Kids Songs | Max & Mia World"
+DESC = "Twinkle Twinkle Little Star, how I wonder what you are! ⭐ Sing along with Max & Mia in this fun 3D animated nursery rhyme!\n\n#TwinkleTwinkle #NurseryRhymes #KidsSongs #MaxAndMia #ForKids"
+TAGS = ["twinkle twinkle little star","star song","lullaby","nursery rhymes","kids songs",
+        "children songs","baby songs","toddler songs","songs for kids","kids videos",
+        "max and mia","preschool songs","sing along","kids learning","bedtime songs"]
+
+try:
+    vid = upload_video(V, TITLE, DESC, TAGS, category_id="1", privacy="public", thumbnail_path=THUMB)
+    print(f"\nFERTIG: https://youtube.com/watch?v={vid}")
+except Exception as e:
+    print(f"FEHLER: {e}")

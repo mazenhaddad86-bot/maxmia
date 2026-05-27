@@ -1,0 +1,2 @@
+Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=79760570040-ps3bkin36sao4lef1eegd7tbv04gtnmp.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A51102%2F&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.upload+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&state=UZKSqwiu1Hbvh1NwoAF9VOKWZOOrbz&code_challenge=WAWAJh8jILzzU--PTAfCOPFV46F-UmcunRxLnYxiDts&code_challenge_method=S256&access_type=offline
+Verbunden mit Kanal: Max And Mia World

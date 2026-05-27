@@ -1,0 +1,20 @@
+
+[01:57:46] Versuch 1...
+
+Lade hoch: twinkle_final_fixed.mp4
+Titel: Twinkle Twinkle Little Star ⭐ | Nursery Rhymes & Kids Songs | Max & Mia World
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domai
+  -> Tageslimit, warte 30 Min ...
+
+[02:19:09] Versuch 2...
+
+Lade hoch: twinkle_final_fixed.mp4
+Titel: Twinkle Twinkle Little Star ⭐ | Nursery Rhymes & Kids Songs | Max & Mia World
+Sichtbarkeit: public
+Upload gestartet...
+HTTP Fehler: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]">
+FEHLER: <HttpError 400 when requesting None returned "The user has exceeded the number of videos they may upload.". Details: "[{'message': 'The user has exceeded the number of videos they may upload.', 'domai
+  -> Tageslimit, warte 30 Min ...
