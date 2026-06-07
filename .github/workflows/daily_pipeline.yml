@@ -2,7 +2,7 @@ name: Max & Mia World - Daily Video Pipeline
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 0,5,10,15,20 * * *'
   workflow_dispatch:
 
 jobs:
