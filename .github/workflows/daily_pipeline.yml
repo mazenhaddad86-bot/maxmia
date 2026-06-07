@@ -1,0 +1,80 @@
+name: Max & Mia World - Daily Video Pipeline
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  generate-video:
+    name: Generate and Upload Kids Video
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg xvfb x11-utils
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install playwright
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Restore YouTube credentials
+        env:
+          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+          YOUTUBE_CLIENT_SECRETS: ${{ secrets.YOUTUBE_CLIENT_SECRETS }}
+        run: python scripts/restore_credentials.py
+
+      - name: Restore pipeline state
+        run: |
+          if [ ! -f "state.json" ]; then
+            echo '{"last_theme_index": -1}' > state.json
+          fi
+
+      - name: Run pipeline
+        env:
+          HIGGSFIELD_EMAIL: ${{ secrets.HIGGSFIELD_EMAIL }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          HIGGSFIELD_COOKIES: ${{ secrets.HIGGSFIELD_COOKIES }}
+          SUNO_EMAIL: ${{ secrets.SUNO_EMAIL }}
+          SUNO_PASSWORD: ${{ secrets.SUNO_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DISPLAY: ':99'
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          sleep 2
+          python scripts/pipeline_orchestrator.py
+
+      - name: Commit updated state
+        run: |
+          git config --global user.email "pipeline@maxmiaworld.com"
+          git config --global user.name "Max Mia Pipeline"
+          git add state.json
+          git diff --staged --quiet || git commit -m "chore: update pipeline state [skip ci]"
+          git push || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-output
+          path: output/
+          retention-days: 7
